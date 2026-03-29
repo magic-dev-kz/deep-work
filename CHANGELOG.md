@@ -1,5 +1,21 @@
 # Changelog
 
+## v13.0 — Focus Streak Visualization (2026-03-29)
+
+**Focus Streak Bar Chart**
+- SVG bar chart showing focus minutes for the last 7 days
+- Color coded: green if daily goal met (120min), orange if partial, gray if no session
+- Minute values displayed above each bar
+- Day labels (Mon, Tue, etc.) below each bar
+- Legend with color meanings
+- Updates automatically after each session save
+- Placed below the heatmap section, spanning full width
+
+### Technical
+- Service worker cache bumped to `deepwork-v13`
+
+---
+
 ## v12.0 — Session Rating, Insights & Break Timer (2026-03-29)
 
 **Session Rating**
