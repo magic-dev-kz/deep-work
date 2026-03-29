@@ -1,0 +1,14 @@
+{
+  "name": "Deep Work Timer",
+  "short_name": "Deep Work",
+  "description": "Focus session tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#58a6ff",
+  "scope": ".",
+  "icons": [
+    {"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>⏱️</text></svg>", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+    {"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>⏱️</text></svg>", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable"}
+  ]
+}

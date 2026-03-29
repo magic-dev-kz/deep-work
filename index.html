@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Work Timer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="description" content="Track your deep work sessions. Heatmap, tags, insights. No distractions, no tracking.">
+<meta property="og:title" content="Deep Work Timer — Focus Session Tracker">
+<meta property="og:description" content="Track deep work sessions with heatmap and insights. No distractions, no tracking, offline.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Deep Work Timer — Focus Session Tracker">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --text-secondary-bright: #9ea7b0; /* BUG-01: boosted contrast for use on --bg-secondary */
+  --accent: #58a6ff;
+  --accent-hover: #79b8ff;
+  --green-0: #161b22;
+  --green-1: #0e4429;
+  --green-2: #006d32;
+  --green-3: #26a641;
+  --green-4: #39d353;
+  --danger: #f85149;
+  --success: #39d353;
+  --border: #30363d;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --tag-code: #39d353;       /* BUG-16: match design spec */
+  --tag-design: #a371f7;
+  --tag-writing: #d29922;
+  --tag-learning: #58a6ff;
+  --tag-planning: #da8b45;   /* BUG-15: changed from yellow to distinct orange, away from Writing amber */
+  --tag-other: #484f58;      /* BUG-17: match design spec */
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+body {
+  font-family: var(--font-stack);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .timer-ring-progress {
+    transition: none !important;
+  }
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.app-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.app-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* BUG-27: Streak display in header */
+.header-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.header-streak-icon {
+  width: 16px;
+  height: 16px;
+  fill: var(--green-4);
+  display: none; /* shown via JS when streak > 0 */
+}
+
+.header-streak-icon.visible {
+  display: inline-block;
+}
+
+.header-streak-current {
+  font-weight: 600;
+  color: var(--text-primary); /* updated by JS: green-4 when > 0, danger when 0 */
+}
+
+.header-streak-separator {
+  color: var(--text-secondary);
+}
+
+.header-streak-best {
+  color: var(--text-secondary);
+}
+
+/* Timer Section */
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+/* Duration selector */
+.duration-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.duration-btn {
+  background: transparent;
+  color: var(--text-secondary-bright); /* BUG-01: brighter text on bg-secondary background */
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  min-width: 52px;
+  min-height: 44px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.duration-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* BUG-24: Match design spec - active duration has green border, tertiary bg */
+.duration-btn.active {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--green-4);
+}
+
+/* BUG-25d: Button press scale on :active */
+.duration-btn:active,
+.tag-chip:active,
+.btn-control:active,
+.export-btn:active {
+  transform: scale(0.96);
+  transition: transform 0.1s;
+}
+
+/* Tag selector */
+.tag-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--text-secondary-bright); /* BUG-01: brighter text for contrast on secondary bg */
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tag-chip:hover {
+  background: var(--bg-tertiary);
+}
+
+.tag-chip .tag-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tag-chip.active {
+  color: var(--text-primary);
+}
+
+/* LEO: colored tint background on active tag chips */
+.tag-chip[data-tag="Code"].active { background: rgba(57, 211, 83, 0.12); border-color: var(--tag-code); }
+.tag-chip[data-tag="Design"].active { background: rgba(163, 113, 247, 0.12); border-color: var(--tag-design); }
+.tag-chip[data-tag="Writing"].active { background: rgba(210, 153, 34, 0.12); border-color: var(--tag-writing); }
+.tag-chip[data-tag="Learning"].active { background: rgba(88, 166, 255, 0.12); border-color: var(--tag-learning); }
+.tag-chip[data-tag="Planning"].active { background: rgba(218, 139, 69, 0.12); border-color: var(--tag-planning); }
+.tag-chip[data-tag="Other"].active { background: rgba(72, 79, 88, 0.12); border-color: var(--tag-other); }
+
+.tag-chip[data-tag="Code"] .tag-dot { background: var(--tag-code); }
+.tag-chip[data-tag="Design"] .tag-dot { background: var(--tag-design); }
+.tag-chip[data-tag="Writing"] .tag-dot { background: var(--tag-writing); }
+.tag-chip[data-tag="Learning"] .tag-dot { background: var(--tag-learning); }
+.tag-chip[data-tag="Planning"] .tag-dot { background: var(--tag-planning); }
+.tag-chip[data-tag="Other"] .tag-dot { background: var(--tag-other); }
+
+/* Timer ring */
+/* BUG-22: Match design spec 256x256 SVG, r=108 */
+.timer-container {
+  position: relative;
+  width: 256px;
+  height: 256px;
+  margin-bottom: 24px;
+}
+
+.timer-svg {
+  width: 256px;
+  height: 256px;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  fill: none;
+  stroke: var(--bg-tertiary);
+  stroke-width: 8;
+}
+
+/* BUG-23: Focus ring should be green, not blue */
+.timer-ring-progress {
+  fill: none;
+  stroke: var(--green-4);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.timer-ring-progress.complete {
+  stroke: var(--green-4);
+}
+
+/* BUG-25a: ring pulse should be scale, not opacity */
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.timer-ring-progress.pulse {
+  animation: pulse-ring 0.4s ease-out;
+  stroke: var(--green-4);
+}
+
+/* BUG-23: Break ring should be accent (blue), not tag-planning */
+.timer-ring-progress.is-break {
+  stroke: var(--accent);
+}
+
+.timer-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* BUG-29: Timer digits should use monospace font */
+.timer-digits {
+  font-size: 72px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  line-height: 1;
+  transition: color 0.3s;
+}
+
+/* BUG-25a: Digit flash green on complete */
+.timer-digits.flash-green {
+  color: var(--green-4);
+}
+
+.timer-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Controls */
+.timer-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn-control {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.1s;
+  font-family: var(--font-stack);
+}
+
+.btn-control:hover {
+  background: var(--bg-tertiary);
+}
+
+/* BUG-24: Start button default = green per design spec */
+/* LEO: green glow on start button */
+.btn-start {
+  width: 72px;
+  height: 72px;
+  background: var(--green-4);
+  border-color: var(--green-4);
+  color: #0d1117;
+  box-shadow: 0 0 20px rgba(57, 211, 83, 0.3);
+}
+
+.btn-start:hover {
+  background: #2ea043;
+  border-color: #2ea043;
+}
+
+/* BUG-24: Running state = tertiary grey per design spec */
+.btn-start.running {
+  background: var(--bg-tertiary);
+  border-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-start.running:hover {
+  background: #30363d;
+}
+
+.btn-skip, .btn-reset {
+  width: 48px;
+  height: 48px;
+}
+
+.btn-control svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.btn-start svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Content layout */
+/* BUG-30: Stats LEFT, heatmap RIGHT per design spec */
+/* BUG-09: Stats panel 240px per design spec */
+.content-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Stats panel */
+.stats-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 12px;
+  padding: 20px;
+  order: 1;
+}
+
+.stats-panel h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* BUG-28: Streak value color-coded */
+.stat-value.streak-active {
+  color: var(--green-4);
+}
+
+.stat-value.streak-zero {
+  color: var(--danger);
+}
+
+.stat-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px;
+  min-height: 44px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.export-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.export-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Daily Goal Tracker */
+.daily-goal {
+  max-width: 480px;
+  margin: 0 auto 24px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 10px;
+  text-align: center;
+}
+.daily-goal-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.daily-goal-label strong {
+  color: var(--text-primary);
+  font-size: 16px;
+}
+.daily-goal-bar {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.daily-goal-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.daily-goal-fill.goal-met {
+  background: var(--success);
+}
+
+/* Session History */
+.session-history {
+  margin-top: 16px;
+}
+.session-history-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-height: 36px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.session-history-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.session-history-toggle svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  transition: transform 0.2s;
+}
+.session-history-toggle.open svg {
+  transform: rotate(90deg);
+}
+.session-history-list {
+  display: none;
+  margin-top: 8px;
+}
+.session-history-list.visible {
+  display: block;
+}
+.session-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+  font-size: 12px;
+  color: var(--text-secondary-bright);
+}
+.session-history-item:last-child {
+  border-bottom: none;
+}
+.session-history-tag {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.session-history-empty {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* Heatmap */
+.heatmap-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 12px;
+  padding: 20px;
+  order: 2;
+}
+
+.heatmap-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.heatmap-wrapper {
+  overflow-x: auto;
+  position: relative;
+}
+
+/* BUG-01: Month labels use brighter color for contrast on bg-secondary */
+.heatmap-months {
+  display: flex;
+  padding-left: 36px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: var(--text-secondary-bright);
+}
+
+.heatmap-months span {
+  flex-shrink: 0;
+}
+
+.heatmap-body {
+  display: flex;
+  gap: 0;
+}
+
+/* BUG-01: Day labels use brighter color for contrast */
+.heatmap-day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.heatmap-day-labels span {
+  width: 28px;
+  height: 12px;
+  font-size: 11px;
+  color: var(--text-secondary-bright);
+  display: flex;
+  align-items: center;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 12px);
+  grid-auto-flow: column;
+  grid-auto-columns: 12px;
+  gap: 3px;
+}
+
+.heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--green-0);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.4s ease-in-out;
+}
+
+.heatmap-cell[data-level="0"] { background: var(--green-0); }
+.heatmap-cell[data-level="1"] { background: var(--green-1); }
+.heatmap-cell[data-level="2"] { background: var(--green-2); }
+.heatmap-cell[data-level="3"] { background: var(--green-3); }
+.heatmap-cell[data-level="4"] { background: var(--green-4); }
+
+/* BUG-26: Today's cell outline */
+.heatmap-cell.heatmap-cell--today {
+  outline: 2px solid var(--text-secondary);
+  outline-offset: -1px;
+}
+
+/* BUG-13: Future dates dimmed */
+.heatmap-cell.heatmap-cell--future {
+  opacity: 0.3;
+}
+
+/* BUG-25c: Heatmap cell glow on update */
+@keyframes cell-glow {
+  0% { box-shadow: 0 0 8px var(--glow-color, var(--green-4)); }
+  100% { box-shadow: 0 0 0px transparent; }
+}
+
+.heatmap-cell.cell-glow {
+  animation: cell-glow 1.2s ease-out;
+}
+
+/* Tooltip */
+/* BUG-25e: Tooltip translateY animation */
+.heatmap-tooltip {
+  position: fixed;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border); /* design.md: tooltip border */
+  color: var(--text-primary);
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  box-shadow: 0 4px 12px var(--shadow);
+  line-height: 1.4;
+  max-width: 240px;
+}
+
+.heatmap-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Notification banner */
+.storage-warning {
+  display: none;
+  background: #3d1f00;
+  color: #d29922;
+  border: 1px solid #5c3d0a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.storage-warning.visible {
+  display: block;
+}
+
+/* BUG-25a: Confetti animation */
+@keyframes confetti-particle {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+.confetti-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  animation: confetti-particle 0.8s ease-out forwards;
+}
+
+/* BUG-25b: Background cooldown animation on break */
+@keyframes cooldown-bg {
+  0% { background-color: var(--bg-primary); }
+  50% { background-color: #0d1520; }
+  100% { background-color: var(--bg-primary); }
+}
+
+body.cooldown-anim {
+  animation: cooldown-bg 1s ease-in-out;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* LEO: On mobile, heatmap first, stats second */
+  .stats-panel {
+    order: 2;
+  }
+
+  .heatmap-section {
+    order: 1;
+  }
+
+  /* BUG-05: Keep 72px minimum on mobile per spec */
+  .timer-digits {
+    font-size: 72px;
+  }
+
+  .timer-container {
+    width: 240px;
+    height: 240px;
+  }
+
+  .timer-svg {
+    width: 240px;
+    height: 240px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <h1>Deep Work Timer</h1>
+    <p>Track your focus. See the progress.</p>
+    <!-- BUG-27: Streak display in header per design spec -->
+    <div class="header-streak" id="headerStreak">
+      <svg class="header-streak-icon" id="headerStreakIcon" viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+      <span class="header-streak-current" id="headerStreakCurrent">0 days</span>
+      <span class="header-streak-separator">/</span>
+      <span class="header-streak-best" id="headerStreakBest">0 days best</span>
+    </div>
+  </header>
+
+  <div class="storage-warning" id="storageWarning" role="alert">
+    Storage full. Sessions won't be saved, but the timer still works.
+  </div>
+
+  <div class="daily-goal" id="dailyGoal" aria-label="Daily focus goal">
+    <div class="daily-goal-label">Today: <strong id="dailyGoalText">0m</strong> / 120m goal</div>
+    <div class="daily-goal-bar"><div class="daily-goal-fill" id="dailyGoalFill" style="width:0%"></div></div>
+  </div>
+
+  <section class="timer-section" aria-label="Timer">
+    <!-- Duration selector -->
+    <!-- BUG-04: Fix initial HTML to match default 25m state -->
+    <div class="duration-selector" role="radiogroup" aria-label="Focus duration">
+      <button class="duration-btn" data-duration="15" role="radio" aria-checked="false" tabindex="-1" aria-label="15 minutes">15m</button>
+      <button class="duration-btn active" data-duration="25" role="radio" aria-checked="true" tabindex="0" aria-label="25 minutes">25m</button>
+      <button class="duration-btn" data-duration="35" role="radio" aria-checked="false" tabindex="-1" aria-label="35 minutes">35m</button>
+      <button class="duration-btn" data-duration="50" role="radio" aria-checked="false" tabindex="-1" aria-label="50 minutes">50m</button>
+    </div>
+
+    <!-- Tag selector -->
+    <div class="tag-selector" role="radiogroup" aria-label="Session tag">
+      <button class="tag-chip active" data-tag="Code" role="radio" aria-checked="true" tabindex="0" aria-label="Code"><span class="tag-dot"></span>Code</button>
+      <button class="tag-chip" data-tag="Design" role="radio" aria-checked="false" tabindex="-1" aria-label="Design"><span class="tag-dot"></span>Design</button>
+      <button class="tag-chip" data-tag="Writing" role="radio" aria-checked="false" tabindex="-1" aria-label="Writing"><span class="tag-dot"></span>Writing</button>
+      <button class="tag-chip" data-tag="Learning" role="radio" aria-checked="false" tabindex="-1" aria-label="Learning"><span class="tag-dot"></span>Learning</button>
+      <button class="tag-chip" data-tag="Planning" role="radio" aria-checked="false" tabindex="-1" aria-label="Planning"><span class="tag-dot"></span>Planning</button>
+      <button class="tag-chip" data-tag="Other" role="radio" aria-checked="false" tabindex="-1" aria-label="Other"><span class="tag-dot"></span>Other</button>
+    </div>
+
+    <!-- Timer ring -->
+    <!-- BUG-22: Match design spec 256x256, r=108 -->
+    <div class="timer-container" style="position:relative;">
+      <svg class="timer-svg" viewBox="0 0 256 256" aria-hidden="true">
+        <circle class="timer-ring-bg" cx="128" cy="128" r="108" />
+        <circle class="timer-ring-progress" id="timerRing" cx="128" cy="128" r="108" />
+      </svg>
+      <div class="timer-display">
+        <div class="timer-digits" id="timerDigits" aria-live="polite" aria-atomic="true">25:00</div>
+        <div class="timer-label" id="timerLabel">Focus</div>
+      </div>
+      <!-- BUG-25a: Confetti container -->
+      <div class="confetti-container" id="confettiContainer" aria-hidden="true"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="timer-controls">
+      <button class="btn-control btn-reset" id="btnReset" aria-label="Reset timer">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4C7.58 4 4.01 7.58 4.01 12S7.58 20 12 20c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+      <button class="btn-control btn-start" id="btnStart" aria-label="Start timer">
+        <svg viewBox="0 0 24 24" id="iconPlay"><polygon points="8,5 20,12 8,19"/></svg>
+      </button>
+      <button class="btn-control btn-skip" id="btnSkip" aria-label="Skip to next">
+        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <div class="content-layout">
+    <!-- Stats (LEFT on desktop per design) -->
+    <section class="stats-panel" aria-label="Statistics">
+      <h2>Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Today</div>
+          <div class="stat-value" id="statTodayValue">0m</div>
+          <div class="stat-sub" id="statTodaySub">0 sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">This Week</div>
+          <div class="stat-value" id="statWeekValue">0h</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">This Month</div>
+          <div class="stat-value" id="statMonthValue">0h</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Streak</div>
+          <div class="stat-value" id="statStreakValue">0 days</div>
+          <div class="stat-sub" id="statStreakSub">Longest: 0 days</div>
+        </div>
+      </div>
+      <button class="export-btn" id="btnExport" aria-label="Export data as CSV">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Export CSV
+      </button>
+      <div class="session-history">
+        <button class="session-history-toggle" id="historyToggle" aria-expanded="false" aria-controls="historyList">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Recent Sessions
+        </button>
+        <div class="session-history-list" id="historyList" role="region"></div>
+      </div>
+    </section>
+
+    <!-- Heatmap (RIGHT on desktop per design) -->
+    <section class="heatmap-section" aria-label="Yearly heatmap">
+      <h2>Deep Work Heatmap</h2>
+      <div class="heatmap-wrapper">
+        <div class="heatmap-months" id="heatmapMonths"></div>
+        <div class="heatmap-body">
+          <div class="heatmap-day-labels">
+            <span></span>
+            <span>Mon</span>
+            <span></span>
+            <span>Wed</span>
+            <span></span>
+            <span>Fri</span>
+            <span></span>
+          </div>
+          <div class="heatmap-grid" id="heatmapGrid" role="grid" aria-label="Heatmap of deep work sessions"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="heatmap-tooltip" id="tooltip"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---- Constants ----
+  var STORAGE_SESSIONS = 'deepwork_sessions';
+  var STORAGE_SETTINGS = 'deepwork_settings';
+  var FOCUS_DURATIONS = [15, 25, 35, 50];
+  var SHORT_BREAK = 5;
+  var LONG_BREAK = 15;
+  var LONG_BREAK_INTERVAL = 4;
+  var TAGS = ['Code', 'Design', 'Writing', 'Learning', 'Planning', 'Other'];
+  var TAG_COLORS = { Code: '#39d353', Design: '#a371f7', Writing: '#d29922', Learning: '#58a6ff', Planning: '#da8b45', Other: '#484f58' };
+
+  // ---- State ----
+  var state = {
+    focusDuration: 25,
+    selectedTag: 'Code',
+    isRunning: false,
+    isPaused: false,
+    isBreak: false,
+    endTime: 0,
+    pausedRemaining: 0,
+    totalDuration: 0,
+    sessionsCompleted: 0,
+    intervalId: null,
+    sessionStartTs: 0,
+    storageError: false,
+    perfStart: 0,       // BUG-11: performance.now() at timer start for clock-change detection
+    dateNowStart: 0     // BUG-11: Date.now() at timer start
+  };
+
+  // BUG-18: Reuse single AudioContext
+  var audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        return null;
+      }
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // ---- DOM refs ----
+  var $ = function(id) { return document.getElementById(id); };
+  var timerDigits = $('timerDigits');
+  var timerLabel = $('timerLabel');
+  var timerRing = $('timerRing');
+  var btnStart = $('btnStart');
+  var btnReset = $('btnReset');
+  var btnSkip = $('btnSkip');
+  var btnExport = $('btnExport');
+  var heatmapGrid = $('heatmapGrid');
+  var heatmapMonths = $('heatmapMonths');
+  var tooltip = $('tooltip');
+  var storageWarning = $('storageWarning');
+  var confettiContainer = $('confettiContainer');
+  var headerStreakCurrent = $('headerStreakCurrent');
+  var headerStreakBest = $('headerStreakBest');
+  var headerStreakIcon = $('headerStreakIcon');
+  var durationBtns = document.querySelectorAll('.duration-btn');
+  var tagChips = document.querySelectorAll('.tag-chip');
+
+  // ---- SVG ring setup ----
+  // BUG-22: r=108, circumference = 2*PI*108 = 678.58
+  var RING_RADIUS = 108;
+  var RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+  timerRing.style.strokeDasharray = RING_CIRCUMFERENCE;
+  timerRing.style.strokeDashoffset = '0';
+
+  // ---- Session validation helper (BUG-19) ----
+  function validateSession(s) {
+    if (!s || typeof s !== 'object') return null;
+    var ts = Number(s.ts);
+    var duration = Number(s.duration);
+    var tag = String(s.tag || '');
+    if (isNaN(ts) || ts <= 0) return null;
+    if (isNaN(duration) || duration <= 0) return null;
+    if (TAGS.indexOf(tag) === -1) tag = 'Other';
+    return { ts: ts, duration: duration, tag: tag };
+  }
+
+  function loadValidSessions() {
+    var raw = loadSessions();
+    var valid = [];
+    for (var i = 0; i < raw.length; i++) {
+      var s = validateSession(raw[i]);
+      if (s) valid.push(s);
+    }
+    return valid;
+  }
+
+  // ---- localStorage helpers (always try/catch) ----
+  function loadSessions() {
+    try {
+      var data = localStorage.getItem(STORAGE_SESSIONS);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveSessions(sessions) {
+    try {
+      localStorage.setItem(STORAGE_SESSIONS, JSON.stringify(sessions));
+      state.storageError = false;
+      storageWarning.classList.remove('visible');
+    } catch (e) {
+      state.storageError = true;
+      storageWarning.classList.add('visible');
+    }
+  }
+
+  function loadSettings() {
+    try {
+      var data = localStorage.getItem(STORAGE_SETTINGS);
+      return data ? JSON.parse(data) : { focusDuration: 25, defaultTag: 'Code' };
+    } catch (e) {
+      return { focusDuration: 25, defaultTag: 'Code' };
+    }
+  }
+
+  function saveSettings(settings) {
+    try {
+      localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings));
+    } catch (e) {
+      // non-critical, ignore
+    }
+  }
+
+  // ---- CSV escaping helper (BUG-07) ----
+  function csvEscape(val) {
+    var str = String(val);
+    if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  }
+
+  // ---- Init from settings ----
+  var settings = loadSettings();
+  state.focusDuration = FOCUS_DURATIONS.indexOf(settings.focusDuration) !== -1 ? settings.focusDuration : 25;
+  state.selectedTag = TAGS.indexOf(settings.defaultTag) !== -1 ? settings.defaultTag : 'Code';
+  updateDurationUI();
+  updateTagUI();
+  updateTimerDisplay(state.focusDuration * 60);
+
+  // ---- Duration selection ----
+  durationBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (state.isRunning) return;
+      var dur = parseInt(btn.dataset.duration, 10);
+      state.focusDuration = dur;
+      updateDurationUI();
+      updateTimerDisplay(dur * 60);
+      resetRing();
+      saveSettings({ focusDuration: dur, defaultTag: state.selectedTag });
+    });
+  });
+
+  function updateDurationUI() {
+    durationBtns.forEach(function(b) {
+      var isActive = parseInt(b.dataset.duration, 10) === state.focusDuration;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      // BUG-02: roving tabindex for radio group
+      b.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+  }
+
+  // BUG-02: Arrow key navigation for radiogroups
+  function setupRadioGroupKeyboard(container, buttons, onSelect) {
+    container.addEventListener('keydown', function(e) {
+      var current = -1;
+      for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i] === document.activeElement) { current = i; break; }
+      }
+      if (current === -1) return;
+
+      var next = -1;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        next = (current + 1) % buttons.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        next = (current - 1 + buttons.length) % buttons.length;
+      }
+
+      if (next !== -1) {
+        e.preventDefault();
+        buttons[next].focus();
+        buttons[next].click();
+      }
+    });
+  }
+
+  setupRadioGroupKeyboard(
+    document.querySelector('.duration-selector'),
+    Array.prototype.slice.call(durationBtns),
+    function(btn) { btn.click(); }
+  );
+
+  // ---- Tag selection ----
+  tagChips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      if (state.isRunning && !state.isBreak) return;
+      state.selectedTag = chip.dataset.tag;
+      updateTagUI();
+      saveSettings({ focusDuration: state.focusDuration, defaultTag: state.selectedTag });
+    });
+  });
+
+  function updateTagUI() {
+    tagChips.forEach(function(c) {
+      var isActive = c.dataset.tag === state.selectedTag;
+      c.classList.toggle('active', isActive);
+      c.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      // BUG-02: roving tabindex
+      c.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+  }
+
+  setupRadioGroupKeyboard(
+    document.querySelector('.tag-selector'),
+    Array.prototype.slice.call(tagChips),
+    function(chip) { chip.click(); }
+  );
+
+  // ---- Timer display ----
+  function updateTimerDisplay(seconds) {
+    seconds = Math.max(0, Math.ceil(seconds));
+    var m = Math.floor(seconds / 60);
+    var s = seconds % 60;
+    timerDigits.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateRing(fraction) {
+    // fraction = 0 (full) to 1 (empty)
+    var offset = RING_CIRCUMFERENCE * fraction;
+    timerRing.style.strokeDashoffset = offset;
+  }
+
+  function resetRing() {
+    timerRing.style.strokeDashoffset = '0';
+    timerRing.classList.remove('complete', 'pulse', 'is-break');
+  }
+
+  // ---- Start / Pause / Resume ----
+  btnStart.addEventListener('click', function() {
+    if (!state.isRunning) {
+      startTimer();
+    } else if (state.isPaused) {
+      resumeTimer();
+    } else {
+      pauseTimer();
+    }
+  });
+
+  function startTimer() {
+    var durationSec;
+    if (state.isBreak) {
+      durationSec = (state.sessionsCompleted % LONG_BREAK_INTERVAL === 0 ? LONG_BREAK : SHORT_BREAK) * 60;
+      timerLabel.textContent = 'Break';
+      timerRing.classList.add('is-break');
+      // BUG-25b: Background cooldown animation
+      document.body.classList.add('cooldown-anim');
+      setTimeout(function() { document.body.classList.remove('cooldown-anim'); }, 1100);
+    } else {
+      durationSec = state.focusDuration * 60;
+      timerLabel.textContent = 'Focus';
+      timerRing.classList.remove('is-break');
+      state.sessionStartTs = Date.now();
+    }
+
+    state.totalDuration = durationSec;
+    state.endTime = Date.now() + durationSec * 1000;
+    state.isRunning = true;
+    state.isPaused = false;
+    // BUG-11: Record performance.now() baseline for clock-change detection
+    state.perfStart = performance.now();
+    state.dateNowStart = Date.now();
+
+    timerRing.classList.remove('complete', 'pulse');
+    updateStartButton();
+    disableSelectors(true);
+    startInterval();
+  }
+
+  function pauseTimer() {
+    state.isPaused = true;
+    state.pausedRemaining = Math.max(0, state.endTime - Date.now());
+    clearInterval(state.intervalId);
+    state.intervalId = null;
+    updateStartButton();
+  }
+
+  function resumeTimer() {
+    state.endTime = Date.now() + state.pausedRemaining;
+    state.isPaused = false;
+    // BUG-11: Reset performance baselines on resume
+    var elapsedSoFar = state.totalDuration * 1000 - state.pausedRemaining;
+    state.perfStart = performance.now() - elapsedSoFar;
+    state.dateNowStart = Date.now() - elapsedSoFar;
+    updateStartButton();
+    startInterval();
+  }
+
+  function startInterval() {
+    state.intervalId = setInterval(tick, 100);
+  }
+
+  function tick() {
+    // BUG-11: Cross-check Date.now() with performance.now() to detect clock changes
+    var dateElapsed = Date.now() - state.dateNowStart;
+    var perfElapsed = performance.now() - state.perfStart;
+    var clockDrift = Math.abs(dateElapsed - perfElapsed);
+
+    var remaining;
+    if (clockDrift > 3000) {
+      // System clock was changed — fall back to performance.now()
+      var perfRemaining = (state.totalDuration * 1000 - perfElapsed) / 1000;
+      remaining = Math.max(0, perfRemaining);
+      // Re-sync endTime to prevent further drift warnings
+      state.endTime = Date.now() + remaining * 1000;
+      state.dateNowStart = Date.now() - perfElapsed;
+    } else {
+      remaining = (state.endTime - Date.now()) / 1000;
+    }
+
+    if (remaining <= 0) {
+      remaining = 0;
+      clearInterval(state.intervalId);
+      state.intervalId = null;
+      onTimerComplete();
+    }
+    updateTimerDisplay(remaining);
+    var fraction = 1 - (remaining / state.totalDuration);
+    updateRing(fraction);
+  }
+
+  function onTimerComplete() {
+    updateTimerDisplay(0);
+    updateRing(1);
+
+    if (!state.isBreak) {
+      // Focus session completed
+      state.sessionsCompleted++;
+      var session = {
+        ts: state.sessionStartTs,
+        duration: state.focusDuration,
+        tag: state.selectedTag
+      };
+      var sessions = loadSessions();
+      sessions.push(session);
+      saveSessions(sessions);
+      updateStats();
+      updateDailyGoal();
+      if (historyList.classList.contains('visible')) renderSessionHistory();
+      renderHeatmap();
+
+      // BUG-25c: Glow today's cell after heatmap re-render
+      var todayCell = heatmapGrid.querySelector('.heatmap-cell--today');
+      if (todayCell) {
+        todayCell.classList.add('cell-glow');
+        setTimeout(function() { todayCell.classList.remove('cell-glow'); }, 1300);
+      }
+
+      playChime();
+      showNotification('Focus session complete! Time for a break.');
+
+      timerRing.classList.add('complete', 'pulse');
+
+      // BUG-25a: Digit flash green
+      timerDigits.classList.add('flash-green');
+      setTimeout(function() { timerDigits.classList.remove('flash-green'); }, 600);
+
+      // BUG-25a: Confetti burst
+      spawnConfetti();
+
+      // Auto transition to break
+      state.isBreak = true;
+      state.isRunning = false;
+      state.isPaused = false;
+      updateStartButton();
+      disableSelectors(false);
+
+      var breakDur = (state.sessionsCompleted % LONG_BREAK_INTERVAL === 0) ? LONG_BREAK : SHORT_BREAK;
+      timerLabel.textContent = 'Break \u2014 ' + breakDur + 'm';
+      updateTimerDisplay(breakDur * 60);
+      resetRing();
+
+    } else {
+      // Break completed
+      playChime();
+      showNotification('Break over! Ready for deep work?');
+
+      state.isBreak = false;
+      state.isRunning = false;
+      state.isPaused = false;
+      updateStartButton();
+      disableSelectors(false);
+
+      timerLabel.textContent = 'Focus';
+      updateTimerDisplay(state.focusDuration * 60);
+      resetRing();
+    }
+  }
+
+  // BUG-25a: Confetti burst
+  function spawnConfetti() {
+    confettiContainer.innerHTML = '';
+    var colors = Object.values(TAG_COLORS);
+    for (var i = 0; i < 12; i++) {
+      var particle = document.createElement('div');
+      particle.className = 'confetti-particle';
+      var angle = (Math.PI * 2 / 12) * i + (Math.random() - 0.5) * 0.5;
+      var distance = 40 + Math.random() * 60;
+      var tx = Math.cos(angle) * distance;
+      var ty = Math.sin(angle) * distance;
+      particle.style.setProperty('--tx', tx + 'px');
+      particle.style.setProperty('--ty', ty + 'px');
+      particle.style.background = colors[i % colors.length];
+      confettiContainer.appendChild(particle);
+    }
+    setTimeout(function() { confettiContainer.innerHTML = ''; }, 900);
+  }
+
+  // ---- Reset ----
+  btnReset.addEventListener('click', function() {
+    clearInterval(state.intervalId);
+    state.intervalId = null;
+    state.isRunning = false;
+    state.isPaused = false;
+    state.isBreak = false;
+    updateStartButton();
+    disableSelectors(false);
+    timerLabel.textContent = 'Focus';
+    updateTimerDisplay(state.focusDuration * 60);
+    resetRing();
+  });
+
+  // ---- Skip ----
+  btnSkip.addEventListener('click', function() {
+    if (!state.isRunning) {
+      if (state.isBreak) {
+        // Skip upcoming break
+        state.isBreak = false;
+        timerLabel.textContent = 'Focus';
+        updateTimerDisplay(state.focusDuration * 60);
+        resetRing();
+      }
+      return;
+    }
+    clearInterval(state.intervalId);
+    state.intervalId = null;
+    onTimerComplete();
+  });
+
+  // ---- Button UI ----
+  function updateStartButton() {
+    var icon;
+    if (state.isRunning && !state.isPaused) {
+      btnStart.classList.add('running');
+      btnStart.setAttribute('aria-label', 'Pause timer');
+      // Pause icon
+      icon = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    } else {
+      btnStart.classList.remove('running');
+      btnStart.setAttribute('aria-label', state.isPaused ? 'Resume timer' : 'Start timer');
+      // Play icon
+      icon = '<svg viewBox="0 0 24 24"><polygon points="8,5 20,12 8,19"/></svg>';
+    }
+    btnStart.innerHTML = icon;
+  }
+
+  function disableSelectors(disabled) {
+    durationBtns.forEach(function(b) { b.disabled = disabled; });
+    // Tags can be changed during break but not during focus
+    if (disabled && !state.isBreak) {
+      tagChips.forEach(function(c) { c.disabled = true; });
+    } else {
+      tagChips.forEach(function(c) { c.disabled = false; });
+    }
+  }
+
+  // ---- Audio chime (Web Audio API) ----
+  // BUG-18: Reuse single AudioContext
+  function playChime() {
+    try {
+      var ctx = getAudioContext();
+      if (!ctx) return;
+      var now = ctx.currentTime;
+
+      function playTone(freq, start, dur, gainVal) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + start);
+        gain.gain.setValueAtTime(0, now + start);
+        gain.gain.linearRampToValueAtTime(gainVal, now + start + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + start);
+        osc.stop(now + start + dur);
+      }
+
+      // Pleasant three-tone chime (C5-E5-G5)
+      playTone(523.25, 0, 0.4, 0.3);
+      playTone(659.25, 0.2, 0.4, 0.3);
+      playTone(783.99, 0.4, 0.5, 0.3);
+    } catch (e) {
+      // Web Audio not available, silently ignore
+    }
+  }
+
+  // ---- Notifications ----
+  function showNotification(text) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      new Notification('Deep Work Timer', { body: text, icon: '' });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(function(perm) {
+        if (perm === 'granted') {
+          new Notification('Deep Work Timer', { body: text, icon: '' });
+        }
+      });
+    }
+  }
+
+  // Request notification permission proactively on first interaction
+  document.addEventListener('click', function requestPerm() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    document.removeEventListener('click', requestPerm);
+  });
+
+  // ---- Heatmap ----
+  function renderHeatmap() {
+    // BUG-19: Use validated sessions
+    var sessions = loadValidSessions();
+
+    // Build map: dateStr -> { minutes, count, tags }
+    var dayMap = {};
+    sessions.forEach(function(s) {
+      var d = new Date(s.ts);
+      var key = dateKey(d);
+      if (!dayMap[key]) dayMap[key] = { minutes: 0, count: 0, tags: {} };
+      dayMap[key].minutes += s.duration;
+      dayMap[key].count++;
+      dayMap[key].tags[s.tag] = (dayMap[key].tags[s.tag] || 0) + 1;
+    });
+
+    // Build 371 cells: ending today, going back 370 days
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var todayStr = dateKey(today);
+
+    // Find the Saturday that is >= today (end of the last column)
+    var endDay = new Date(today);
+    var todayDow = today.getDay(); // 0=Sun
+    var endOffset = (6 - todayDow); // days until Saturday
+    endDay.setDate(endDay.getDate() + endOffset);
+
+    var startDay = new Date(endDay);
+    startDay.setDate(startDay.getDate() - 370); // 371 cells total
+
+    // BUG-12: Use DocumentFragment for batch DOM insertion
+    var fragment = document.createDocumentFragment();
+    heatmapGrid.innerHTML = '';
+
+    var cursor = new Date(startDay);
+    for (var i = 0; i < 371; i++) {
+      var key = dateKey(cursor);
+      var info = dayMap[key] || { minutes: 0, count: 0, tags: {} };
+      var level = minutesToLevel(info.minutes);
+
+      var cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      cell.dataset.level = level;
+      cell.dataset.date = key;
+      cell.dataset.minutes = info.minutes;
+      cell.dataset.count = info.count;
+      cell.dataset.tags = JSON.stringify(info.tags);
+      cell.setAttribute('role', 'gridcell');
+      cell.setAttribute('aria-label', formatDateLabel(cursor) + ': ' + formatMinutes(info.minutes) + ', ' + info.count + ' sessions');
+
+      // BUG-26: Today's cell outline
+      if (key === todayStr) {
+        cell.classList.add('heatmap-cell--today');
+      }
+
+      // BUG-13: Future dates dimmed
+      if (cursor > today) {
+        cell.classList.add('heatmap-cell--future');
+      }
+
+      // BUG-03: Roving tabindex — only today's cell (or first) is tabbable
+      cell.setAttribute('tabindex', '-1');
+
+      fragment.appendChild(cell);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    heatmapGrid.appendChild(fragment);
+
+    // BUG-03: Set roving tabindex — prefer today's cell, fallback to first
+    var focusTarget = heatmapGrid.querySelector('.heatmap-cell--today') || heatmapGrid.querySelector('.heatmap-cell');
+    if (focusTarget) focusTarget.setAttribute('tabindex', '0');
+
+    // Month labels
+    renderMonthLabels(startDay, 53);
+  }
+
+  function renderMonthLabels(startDay, cols) {
+    heatmapMonths.innerHTML = '';
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // BUG-20: removed dead variable `cursor`
+    var lastMonth = -1;
+    var positions = [];
+
+    for (var col = 0; col < cols; col++) {
+      var colDate = new Date(startDay);
+      colDate.setDate(colDate.getDate() + col * 7);
+      var m = colDate.getMonth();
+      if (m !== lastMonth) {
+        positions.push({ col: col, label: months[m] });
+        lastMonth = m;
+      }
+    }
+
+    // BUG-12: Use DocumentFragment
+    var fragment = document.createDocumentFragment();
+    positions.forEach(function(p, idx) {
+      var span = document.createElement('span');
+      span.textContent = p.label;
+      var nextCol = idx < positions.length - 1 ? positions[idx + 1].col : cols;
+      var widthCols = nextCol - p.col;
+      span.style.width = (widthCols * 15) + 'px';
+      fragment.appendChild(span);
+    });
+    heatmapMonths.appendChild(fragment);
+  }
+
+  function dateKey(d) {
+    var y = d.getFullYear();
+    var m = d.getMonth() + 1;
+    var day = d.getDate();
+    return y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  }
+
+  function minutesToLevel(min) {
+    if (min === 0) return 0;
+    if (min <= 60) return 1;
+    if (min <= 120) return 2;
+    if (min <= 180) return 3;
+    return 4;
+  }
+
+  function formatMinutes(min) {
+    if (min === 0) return 'No deep work';
+    var h = Math.floor(min / 60);
+    var m = min % 60;
+    if (h === 0) return m + 'm';
+    return h + 'h ' + m + 'm';
+  }
+
+  function formatDateLabel(d) {
+    var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  // ---- Tooltip ----
+  // BUG-21: XSS fix - build tooltip with DOM methods, not innerHTML
+  function showTooltip(cell) {
+    var dateStr = cell.dataset.date;
+    var minutes = parseInt(cell.dataset.minutes, 10);
+    var count = parseInt(cell.dataset.count, 10);
+    var tags = {};
+    try { tags = JSON.parse(cell.dataset.tags); } catch (ex) {}
+
+    var parts = dateStr.split('-');
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+
+    // Build tooltip content safely using textContent (no innerHTML with user data)
+    tooltip.textContent = '';
+
+    var dateLine = document.createElement('strong');
+    dateLine.textContent = formatDateLabel(d);
+    tooltip.appendChild(dateLine);
+
+    tooltip.appendChild(document.createElement('br'));
+
+    var statsText = formatMinutes(minutes) + ' deep work';
+    if (count > 0) statsText += ' (' + count + ' session' + (count !== 1 ? 's' : '') + ')';
+    tooltip.appendChild(document.createTextNode(statsText));
+
+    var tagKeys = Object.keys(tags);
+    if (tagKeys.length > 0) {
+      tooltip.appendChild(document.createElement('br'));
+      tagKeys.forEach(function(t) {
+        var dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle;';
+        dot.style.background = TAG_COLORS[t] || '#484f58';
+        tooltip.appendChild(dot);
+        tooltip.appendChild(document.createTextNode(t + ': ' + tags[t] + ' '));
+      });
+    }
+
+    tooltip.classList.add('visible');
+
+    var rect = cell.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+    tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+  }
+
+  heatmapGrid.addEventListener('mouseover', function(e) {
+    if (!e.target.classList.contains('heatmap-cell')) return;
+    showTooltip(e.target);
+  });
+
+  heatmapGrid.addEventListener('mouseout', function(e) {
+    if (e.target.classList.contains('heatmap-cell')) {
+      tooltip.classList.remove('visible');
+    }
+  });
+
+  // BUG-03: Keyboard access for heatmap cells - show tooltip on focus
+  heatmapGrid.addEventListener('focusin', function(e) {
+    if (e.target.classList.contains('heatmap-cell')) {
+      showTooltip(e.target);
+    }
+  });
+
+  heatmapGrid.addEventListener('focusout', function(e) {
+    if (e.target.classList.contains('heatmap-cell')) {
+      tooltip.classList.remove('visible');
+    }
+  });
+
+  // BUG-03: Roving tabindex for heatmap grid
+  // ArrowLeft/Right = prev/next day, ArrowUp/Down = prev/next week, Home/End = first/last cell
+  heatmapGrid.addEventListener('keydown', function(e) {
+    if (!e.target.classList.contains('heatmap-cell')) return;
+    var cells = Array.prototype.slice.call(heatmapGrid.querySelectorAll('.heatmap-cell'));
+    var idx = cells.indexOf(e.target);
+    if (idx === -1) return;
+    var newIdx = -1;
+    switch (e.key) {
+      case 'ArrowRight': newIdx = Math.min(idx + 1, cells.length - 1); break;
+      case 'ArrowLeft':  newIdx = Math.max(idx - 1, 0); break;
+      case 'ArrowDown':  newIdx = Math.min(idx + 7, cells.length - 1); break;
+      case 'ArrowUp':    newIdx = Math.max(idx - 7, 0); break;
+      case 'Home':       newIdx = 0; break;
+      case 'End':        newIdx = cells.length - 1; break;
+      default: return;
+    }
+    e.preventDefault();
+    if (newIdx !== idx && newIdx >= 0 && newIdx < cells.length) {
+      cells[idx].setAttribute('tabindex', '-1');
+      cells[newIdx].setAttribute('tabindex', '0');
+      cells[newIdx].focus();
+    }
+  });
+
+  // ---- Statistics ----
+  function updateStats() {
+    // BUG-19: Use validated sessions
+    var sessions = loadValidSessions();
+    var now = new Date();
+    var todayKey = dateKey(now);
+
+    // BUG-12: Single pass through sessions for all stats
+    var todayMin = 0, todayCount = 0;
+    var weekMin = 0, monthMin = 0;
+    var daySet = {};
+
+    var weekStart = new Date(now);
+    var dow = weekStart.getDay();
+    var diff = dow === 0 ? 6 : dow - 1;
+    weekStart.setDate(weekStart.getDate() - diff);
+    weekStart.setHours(0, 0, 0, 0);
+    var weekStartTs = weekStart.getTime();
+
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    var monthStartTs = monthStart.getTime();
+
+    sessions.forEach(function(s) {
+      var sKey = dateKey(new Date(s.ts));
+      daySet[sKey] = true;
+
+      if (sKey === todayKey) {
+        todayMin += s.duration;
+        todayCount++;
+      }
+      if (s.ts >= weekStartTs) weekMin += s.duration;
+      if (s.ts >= monthStartTs) monthMin += s.duration;
+    });
+
+    $('statTodayValue').textContent = formatMinutes(todayMin);
+    $('statTodaySub').textContent = todayCount + ' session' + (todayCount !== 1 ? 's' : '');
+    $('statWeekValue').textContent = (weekMin / 60).toFixed(1) + 'h';
+    $('statMonthValue').textContent = Math.round(monthMin / 60) + 'h';
+
+    // Streaks
+    var current = 0;
+    var checkDate = new Date(now);
+    checkDate.setHours(0, 0, 0, 0);
+
+    if (!daySet[dateKey(checkDate)]) {
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    while (daySet[dateKey(checkDate)]) {
+      current++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    // Longest streak
+    var allDays = Object.keys(daySet).sort();
+    var longest = 0, streak = 0;
+    for (var i = 0; i < allDays.length; i++) {
+      if (i === 0) {
+        streak = 1;
+      } else {
+        var prev = new Date(allDays[i - 1] + 'T00:00:00');
+        var curr = new Date(allDays[i] + 'T00:00:00');
+        var diffDays = Math.round((curr - prev) / 86400000);
+        streak = diffDays === 1 ? streak + 1 : 1;
+      }
+      if (streak > longest) longest = streak;
+    }
+
+    // BUG-28: Streak color treatment
+    var streakEl = $('statStreakValue');
+    streakEl.textContent = current + ' day' + (current !== 1 ? 's' : '');
+    streakEl.classList.remove('streak-active', 'streak-zero');
+    streakEl.classList.add(current > 0 ? 'streak-active' : 'streak-zero');
+
+    $('statStreakSub').textContent = 'Longest: ' + longest + ' day' + (longest !== 1 ? 's' : '');
+
+    // BUG-27: Update header streak
+    headerStreakCurrent.textContent = current + ' day' + (current !== 1 ? 's' : '');
+    headerStreakCurrent.style.color = current > 0 ? 'var(--green-4)' : 'var(--danger)';
+    headerStreakBest.textContent = longest + ' day' + (longest !== 1 ? 's' : '') + ' best';
+    headerStreakIcon.classList.toggle('visible', current > 0);
+  }
+
+  // ---- CSV Export ----
+  // BUG-07: CSV escaping + BUG-08: data validation
+  btnExport.addEventListener('click', function() {
+    var sessions = loadValidSessions(); // BUG-08/19: validated
+    // BUG-07: UTF-8 BOM for Excel compatibility
+    var csv = '\uFEFF' + 'date,start_time,duration_minutes,tag\n';
+    sessions.forEach(function(s) {
+      var d = new Date(s.ts);
+      // BUG-08: Skip invalid dates
+      if (isNaN(d.getTime())) return;
+      var dateStr = d.getFullYear() + '-' +
+        ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+        ('0' + d.getDate()).slice(-2);
+      var timeStr = dateStr + 'T' +
+        ('0' + d.getHours()).slice(-2) + ':' +
+        ('0' + d.getMinutes()).slice(-2) + ':' +
+        ('0' + d.getSeconds()).slice(-2);
+      // BUG-07: Escape all fields
+      csv += csvEscape(dateStr) + ',' + csvEscape(timeStr) + ',' + csvEscape(s.duration) + ',' + csvEscape(s.tag) + '\n';
+    });
+
+    var today = new Date();
+    var filename = 'deepwork_export_' + dateKey(today) + '.csv';
+
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ---- Daily Goal Tracker ----
+  var DAILY_GOAL = 120; // minutes
+  var dailyGoalText = $('dailyGoalText');
+  var dailyGoalFill = $('dailyGoalFill');
+
+  function updateDailyGoal() {
+    try {
+      var sessions = loadValidSessions();
+      var todayKey = dateKey(new Date());
+      var todayMin = 0;
+      sessions.forEach(function(s) {
+        if (dateKey(new Date(s.ts)) === todayKey) todayMin += s.duration;
+      });
+      dailyGoalText.textContent = formatMinutes(todayMin);
+      var pct = Math.min(100, Math.round((todayMin / DAILY_GOAL) * 100));
+      dailyGoalFill.style.width = pct + '%';
+      dailyGoalFill.classList.toggle('goal-met', todayMin >= DAILY_GOAL);
+    } catch (e) { /* non-critical */ }
+  }
+
+  // ---- Session History ----
+  var historyToggle = $('historyToggle');
+  var historyList = $('historyList');
+
+  historyToggle.addEventListener('click', function() {
+    var open = historyList.classList.toggle('visible');
+    historyToggle.classList.toggle('open', open);
+    historyToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) renderSessionHistory();
+  });
+
+  function renderSessionHistory() {
+    try {
+      var sessions = loadValidSessions();
+      var recent = sessions.slice(-10).reverse();
+      if (recent.length === 0) {
+        historyList.innerHTML = '<div class="session-history-empty">No sessions yet</div>';
+        return;
+      }
+      var html = '';
+      recent.forEach(function(s) {
+        var d = new Date(s.ts);
+        var dateStr = ('0' + (d.getMonth() + 1)).slice(-2) + '/' +
+          ('0' + d.getDate()).slice(-2) + ' ' +
+          ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+        var color = TAG_COLORS[s.tag] || TAG_COLORS.Other;
+        html += '<div class="session-history-item">' +
+          '<span><span class="session-history-tag" style="background:' + color + '"></span>' +
+          dateStr + '</span>' +
+          '<span>' + s.duration + 'm ' + s.tag + '</span></div>';
+      });
+      historyList.innerHTML = html;
+    } catch (e) {
+      historyList.innerHTML = '<div class="session-history-empty">Error loading history</div>';
+    }
+  }
+
+  // ---- Init ----
+  renderHeatmap();
+  updateStats();
+  updateDailyGoal();
+
+})();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}
+</script>
+</body>
+</html>
