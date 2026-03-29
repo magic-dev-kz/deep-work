@@ -1,5 +1,11 @@
 # Changelog
 
+## v7.0 — PWA Install, Keyboard Shortcuts & Streak Persistence (2026-03-29)
+- **PWA Install Prompt**: `beforeinstallprompt` banner shown after 2+ visits, with Install/Dismiss buttons. Dismissed state persisted in localStorage
+- **Keyboard Shortcuts**: Space = start/pause timer, Escape = reset. Disabled when focus is in input/textarea
+- **Session Streak Persistence**: Streak value saved to localStorage (`deepwork_streak`). Header displays "X-day focus streak" when streak >= 2 days
+- Service worker cache bumped to `deepwork-v7`
+
 ## v6.0 — Micro-interactions & Polish (2026-03-29)
 - **Timer ring glow**: Active timer SVG ring pulses with intensified glow animation (green for focus, blue for break). Removed on reset/complete
 - **Session complete celebration**: Existing confetti burst (CSS-only, 12 particles) already present from v3. Verified working
