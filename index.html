@@ -1971,6 +1971,9 @@ body.cooldown-anim {
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         Export CSV
       </button>
+      <button class="export-btn" id="btnShareX" aria-label="Share on X" style="margin-top:8px">
+        Share on X
+      </button>
       <div class="session-history">
         <button class="session-history-toggle" id="historyToggle" aria-expanded="false" aria-controls="historyList">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -2592,10 +2595,10 @@ body.cooldown-anim {
         osc.stop(now + start + dur);
       }
 
-      // Pleasant three-tone chime (C5-E5-G5)
-      playTone(523.25, 0, 0.4, 0.3);
-      playTone(659.25, 0.2, 0.4, 0.3);
-      playTone(783.99, 0.4, 0.5, 0.3);
+      // v9: 3 short beeps at 440Hz
+      playTone(440, 0, 0.15, 0.35);
+      playTone(440, 0.25, 0.15, 0.35);
+      playTone(440, 0.50, 0.15, 0.35);
     } catch (e) {
       // Web Audio not available, silently ignore
     }
@@ -2965,6 +2968,19 @@ body.cooldown-anim {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  });
+
+  // ---- Share on X (v9) ----
+  $('btnShareX').addEventListener('click', function() {
+    var sessions = loadValidSessions();
+    var todayKey = dateKey(new Date());
+    var todayMins = 0;
+    sessions.forEach(function(s) {
+      var d = new Date(s.ts);
+      if (dateKey(d) === todayKey) todayMins += (s.duration || 0);
+    });
+    var text = 'Focus session: ' + todayMins + 'min of deep work \u23F1\uFE0F Track yours: https://magic-dev-kz.github.io/deep-work/';
+    window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank', 'noopener');
   });
 
   // ---- Daily Goal Tracker (v4: ring + session count + celebration) ----

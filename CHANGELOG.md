@@ -1,5 +1,10 @@
 # Changelog
 
+## v9.0 — Share on X & Timer Beep (2026-03-29)
+- **Share on X**: Button below Export CSV. Pre-filled tweet: "Focus session: Xmin of deep work. Track yours: [URL]"
+- **Timer Sound**: Session completion chime replaced with 3 short beeps at 440Hz (Web Audio API), 150ms each with 100ms gaps
+- Service worker cache bumped to `deepwork-v9`
+
 ## v8.0 — Distraction Counter, Lo-fi Sound & Session Comparison (2026-03-29)
 - **Distraction Counter**: "Got distracted" button visible during focus sessions. Increments a counter badge on each click. Distraction count shown in the session completion modal summary ("Distractions: N") and persisted with session data. Resets on new session or reset
 - **Focus Music — Lo-fi**: Replaced "Forest" ambient sound with "Lo-fi" — a warm oscillator-based chord pad (A2 sine + A3/E4 triangle with LFO modulation) through the Web Audio API, filtered with a 2kHz lowpass for warmth
