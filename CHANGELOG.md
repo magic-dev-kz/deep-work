@@ -1,5 +1,12 @@
 # Changelog
 
+## v10.0 — Visual & Audio Polish (2026-03-29)
+- Timer digit font larger (76px to 82px) for readability
+- Session complete beep duration longer (150ms to 250ms each) for better audibility
+- Service worker cache bumped to `deepwork-v10`
+
+---
+
 ## v9.0 — Share on X & Timer Beep (2026-03-29)
 - **Share on X**: Button below Export CSV. Pre-filled tweet: "Focus session: Xmin of deep work. Track yours: [URL]"
 - **Timer Sound**: Session completion chime replaced with 3 short beeps at 440Hz (Web Audio API), 150ms each with 100ms gaps

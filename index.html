@@ -416,7 +416,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* BUG-29: Timer digits should use monospace font */
 .timer-digits {
-  font-size: 76px;
+  font-size: 82px;
   font-weight: 800;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -2595,10 +2595,10 @@ body.cooldown-anim {
         osc.stop(now + start + dur);
       }
 
-      // v9: 3 short beeps at 440Hz
-      playTone(440, 0, 0.15, 0.35);
-      playTone(440, 0.25, 0.15, 0.35);
-      playTone(440, 0.50, 0.15, 0.35);
+      // v10: 3 short beeps at 440Hz (250ms each for better audibility)
+      playTone(440, 0, 0.25, 0.35);
+      playTone(440, 0.35, 0.25, 0.35);
+      playTone(440, 0.70, 0.25, 0.35);
     } catch (e) {
       // Web Audio not available, silently ignore
     }
