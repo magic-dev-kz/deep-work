@@ -1921,6 +1921,30 @@ body.cooldown-anim {
   .onboarding-card, .onboarding-feature { animation: none; }
   .onboarding-overlay { transition: none; }
 }
+
+/* === v12: Session Rating Stars === */
+.session-rating { margin-bottom: 14px; text-align: center; }
+.session-rating-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+.session-rating-stars { display: flex; gap: 6px; justify-content: center; }
+.session-rating-star {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(33, 38, 45, 0.6); border: 1px solid var(--border);
+  cursor: pointer; font-size: 18px; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s; color: var(--text-secondary);
+}
+.session-rating-star:hover { border-color: #d29922; transform: scale(1.15); box-shadow: 0 0 12px rgba(210, 153, 34, 0.2); }
+.session-rating-star.selected { background: rgba(210, 153, 34, 0.15); border-color: #d29922; color: #d29922; }
+
+/* === v12: Productivity Insights === */
+.productivity-insight {
+  margin-top: 12px; padding: 10px 14px; border-radius: 10px;
+  background: rgba(88, 166, 255, 0.06); border: 1px solid rgba(88, 166, 255, 0.15);
+  font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;
+}
+.productivity-insight-icon { font-size: 16px; }
+
+/* === v12: Break Timer === */
+.break-countdown { font-size: 13px; color: var(--accent); margin-top: 6px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -2093,6 +2117,11 @@ body.cooldown-anim {
           <div class="stat-sub" id="statStreakSub">Longest: 0 days</div>
         </div>
       </div>
+      <!-- v12: Productivity insight -->
+      <div class="productivity-insight" id="productivityInsight" style="display:none">
+        <span class="productivity-insight-icon">&#128161;</span>
+        <span id="productivityInsightText"></span>
+      </div>
       <button class="export-btn" id="btnExport" aria-label="Export data as CSV">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         Export CSV
@@ -2151,6 +2180,17 @@ body.cooldown-anim {
         <div class="focus-score-value" id="focusScoreValue">0</div>
         <div class="focus-score-breakdown" id="focusScoreBreakdown"></div>
         <span class="focus-score-grade" id="focusScoreGrade"></span>
+      </div>
+      <!-- v12: Session rating -->
+      <div class="session-rating" id="sessionRating">
+        <div class="session-rating-label">How focused were you?</div>
+        <div class="session-rating-stars" id="sessionRatingStars">
+          <button class="session-rating-star" data-rating="1" aria-label="1 star">&#9733;</button>
+          <button class="session-rating-star" data-rating="2" aria-label="2 stars">&#9733;</button>
+          <button class="session-rating-star" data-rating="3" aria-label="3 stars">&#9733;</button>
+          <button class="session-rating-star" data-rating="4" aria-label="4 stars">&#9733;</button>
+          <button class="session-rating-star" data-rating="5" aria-label="5 stars">&#9733;</button>
+        </div>
       </div>
       <!-- v8: Distraction summary -->
       <div class="modal-distractions hidden" id="modalDistractions">Distractions: <span id="modalDistractionCount">0</span></div>
@@ -2280,6 +2320,10 @@ body.cooldown-anim {
     // v8: preserve distractions
     if (typeof s.distractions === 'number' && s.distractions >= 0) {
       result.distractions = s.distractions;
+    }
+    // v12: preserve rating
+    if (typeof s.rating === 'number' && s.rating >= 1 && s.rating <= 5) {
+      result.rating = s.rating;
     }
     return result;
   }
@@ -2600,6 +2644,13 @@ body.cooldown-anim {
 
       // v4: Show session notes modal
       showSessionModal();
+
+      // v12: Auto-start break timer after 2 seconds
+      setTimeout(function() {
+        if (state.isBreak && !state.isRunning) {
+          startTimer();
+        }
+      }, 2000);
 
     } else {
       // Break completed
@@ -3178,6 +3229,9 @@ body.cooldown-anim {
   function showSessionModal() {
     sessionNoteInput.value = '';
     noteCharCount.textContent = '0';
+    // v12: Reset rating stars
+    sessionRatingValue = 0;
+    ratingStars.forEach(function(s) { s.classList.remove('selected'); });
     modalSubtitle.textContent = state.pendingSession.duration + ' min ' + state.pendingSession.tag.toLowerCase() + ' session';
     // v8: Show distraction count in modal
     if (state.distractionCount > 0) {
@@ -3205,12 +3259,15 @@ body.cooldown-anim {
     }
     // v8: Preserve distraction count
     if (typeof session.distractions !== 'number') session.distractions = 0;
+    // v12: Save rating
+    if (sessionRatingValue > 0) session.rating = sessionRatingValue;
     var sessions = loadSessions();
     sessions.push(session);
     saveSessions(sessions);
     state.pendingSession = null;
     updateStats();
     updateDailyGoal();
+    updateProductivityInsight(); // v12
     if (historyList.classList.contains('visible')) renderSessionHistory();
     renderHeatmap();
 
@@ -3253,6 +3310,65 @@ body.cooldown-anim {
       finalizeSession('');
     }
   });
+
+  // ---- v12: Session Rating Stars ----
+  var sessionRatingValue = 0;
+  var ratingStars = document.querySelectorAll('.session-rating-star');
+  ratingStars.forEach(function(star) {
+    star.addEventListener('click', function() {
+      var rating = parseInt(this.dataset.rating, 10);
+      sessionRatingValue = rating;
+      ratingStars.forEach(function(s) {
+        var r = parseInt(s.dataset.rating, 10);
+        s.classList.toggle('selected', r <= rating);
+      });
+    });
+  });
+
+  // ---- v12: Productivity Insights ----
+  var productivityInsightEl = $('productivityInsight');
+  var productivityInsightText = $('productivityInsightText');
+
+  function updateProductivityInsight() {
+    var sessions = loadValidSessions();
+    if (sessions.length < 3) {
+      productivityInsightEl.style.display = 'none';
+      return;
+    }
+
+    // Find most productive hour
+    var hourCounts = {};
+    sessions.forEach(function(s) {
+      var d = new Date(s.ts);
+      var hour = d.getHours();
+      if (!hourCounts[hour]) hourCounts[hour] = { minutes: 0, count: 0 };
+      hourCounts[hour].minutes += s.duration;
+      hourCounts[hour].count++;
+    });
+
+    var bestHour = -1;
+    var bestMinutes = 0;
+    Object.keys(hourCounts).forEach(function(h) {
+      if (hourCounts[h].minutes > bestMinutes) {
+        bestMinutes = hourCounts[h].minutes;
+        bestHour = parseInt(h, 10);
+      }
+    });
+
+    if (bestHour >= 0) {
+      var endHour = (bestHour + 1) % 24;
+      var startStr = (bestHour < 10 ? '0' : '') + bestHour + ':00';
+      var endStr = (endHour < 10 ? '0' : '') + endHour + ':00';
+      var amPmStart = bestHour < 12 ? 'AM' : 'PM';
+      var amPmEnd = endHour < 12 ? 'AM' : 'PM';
+      var h12Start = bestHour === 0 ? 12 : bestHour > 12 ? bestHour - 12 : bestHour;
+      var h12End = endHour === 0 ? 12 : endHour > 12 ? endHour - 12 : endHour;
+      productivityInsightText.textContent = 'Your most productive hour: ' + h12Start + '-' + h12End + ' ' + amPmEnd;
+      productivityInsightEl.style.display = '';
+    } else {
+      productivityInsightEl.style.display = 'none';
+    }
+  }
 
   // ---- v8: Distraction Counter ----
   distractionBtn.addEventListener('click', function() {
@@ -3847,6 +3963,7 @@ body.cooldown-anim {
   renderHeatmap();
   updateStats();
   updateDailyGoal();
+  updateProductivityInsight(); // v12
 
 })();
 

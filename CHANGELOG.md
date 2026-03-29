@@ -1,5 +1,30 @@
 # Changelog
 
+## v12.0 — Session Rating, Insights & Break Timer (2026-03-29)
+
+**Session Rating**
+- After each focus session, a 1-5 star "How focused were you?" rating appears in the completion modal
+- Stars highlight on click with golden color and glow effect
+- Rating value saved with session data and preserved through validation
+- Resets for each new session
+
+**Productivity Insights**
+- "Your most productive hour: 2-3 PM" insight shown in the stats panel
+- Calculated from all session timestamps to find the hour with the most total focus minutes
+- Appears automatically when 3+ sessions exist; hidden otherwise
+- Updates after each session save
+
+**Break Timer Auto-Start**
+- After a focus session completes, the 5-minute break countdown automatically starts after a 2-second delay
+- Allows the user to see the completion modal and rate the session before the break begins
+- Break duration follows existing logic (5 min short break, 15 min every 4th session)
+
+### Technical
+- Session validation updated to preserve `rating` field
+- Service worker cache bumped to `deepwork-v12`
+
+---
+
 ## v11.0 — Onboarding Overlay (2026-03-29)
 - **Onboarding overlay**: First-visit glassmorphism overlay with app title, tagline, 3 feature highlights (staggered fade-in), and "Start My First Session" CTA
 - CTA dismisses overlay and sets localStorage flag (`deepwork_onboarded`)
