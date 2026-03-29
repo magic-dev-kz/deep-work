@@ -1,5 +1,13 @@
 # Changelog
 
+## v6.0 — Micro-interactions & Polish (2026-03-29)
+- **Timer ring glow**: Active timer SVG ring pulses with intensified glow animation (green for focus, blue for break). Removed on reset/complete
+- **Session complete celebration**: Existing confetti burst (CSS-only, 12 particles) already present from v3. Verified working
+- **Focus-visible**: All interactive elements (duration buttons, tag chips, control buttons, export, sound toggles, template buttons) have explicit `:focus-visible` outline styles
+- **Tag selection animation**: Selecting a tag triggers a bounce spring animation (scale 1 -> 1.15 -> 0.92 -> 1.06 -> 1) on the pill
+- Service worker cache bumped to `deepwork-v6`
+- All new animations respect `prefers-reduced-motion: reduce`
+
 ## v5.0 — Focus Score, Weekly Report, Session Templates (2026-03-29)
 - **Focus Score**: After each session, an animated 1-100 score appears in the completion modal. Calculated from duration (0-40), streak days (0-35), and weekly tag variety bonus (0-25). Animated counter with letter grade (S/A/B/C) and breakdown display
 - **Weekly Report**: Collapsible section in stats panel showing total hours, session count, average per active day, most productive day, top tag, and active days — all auto-generated from localStorage session data
