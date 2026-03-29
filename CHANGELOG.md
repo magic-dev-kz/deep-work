@@ -1,5 +1,13 @@
 # Changelog
 
+## v11.0 — Onboarding Overlay (2026-03-29)
+- **Onboarding overlay**: First-visit glassmorphism overlay with app title, tagline, 3 feature highlights (staggered fade-in), and "Start My First Session" CTA
+- CTA dismisses overlay and sets localStorage flag (`deepwork_onboarded`)
+- Dark glass card with blue/green accent glow, `prefers-reduced-motion` safe
+- Service worker cache bumped to `deepwork-v11`
+
+---
+
 ## v10.0 — Visual & Audio Polish (2026-03-29)
 - Timer digit font larger (76px to 82px) for readability
 - Session complete beep duration longer (150ms to 250ms each) for better audibility
