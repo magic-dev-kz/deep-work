@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deep Work Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="description" content="Track your deep work sessions. Heatmap, tags, insights. No distractions, no tracking.">
 <meta property="og:title" content="Deep Work Timer — Focus Session Tracker">
@@ -21,7 +24,7 @@
 }
 
 :root {
-  --bg-primary: #0d1117;
+  --bg-primary: #0a0e17;
   --bg-secondary: #161b22;
   --bg-tertiary: #21262d;
   --text-primary: #f0f6fc;
@@ -44,13 +47,25 @@
   --tag-learning: #58a6ff;
   --tag-planning: #da8b45;   /* BUG-15: changed from yellow to distinct orange, away from Writing amber */
   --tag-other: #484f58;      /* BUG-17: match design spec */
-  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  --glass-bg: rgba(22, 27, 34, 0.6);
+  --glass-border: rgba(48, 54, 61, 0.5);
+  --glow-green: rgba(57, 211, 83, 0.35);
+  --glow-accent: rgba(88, 166, 255, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 body {
   font-family: var(--font-stack);
-  background: var(--bg-primary);
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(30, 80, 120, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 75% 20%, rgba(40, 100, 140, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(30, 90, 70, 0.08) 0%, transparent 50%),
+    linear-gradient(145deg, #070b14 0%, #0a0e17 30%, #0f1520 60%, #0a1628 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
@@ -88,19 +103,31 @@ button:focus-visible, a:focus-visible {
 .app-header {
   text-align: center;
   margin-bottom: 32px;
+  padding: 24px 16px;
+  border-radius: 20px;
+  background: rgba(22, 27, 34, 0.4);
+  border: 1px solid rgba(48, 54, 61, 0.3);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: var(--shadow-lg);
 }
 
 .app-header h1 {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 900;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #f0f6fc 0%, #79b8ff 50%, #58a6ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .app-header p {
   font-size: 14px;
   color: var(--text-secondary);
   margin-top: 4px;
+  font-weight: 400;
 }
 
 /* BUG-27: Streak display in header */
@@ -125,7 +152,7 @@ button:focus-visible, a:focus-visible {
 }
 
 .header-streak-current {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary); /* updated by JS: green-4 when > 0, danger when 0 */
 }
 
@@ -155,29 +182,35 @@ button:focus-visible, a:focus-visible {
 }
 
 .duration-btn {
-  background: transparent;
+  background: var(--glass-bg);
   color: var(--text-secondary-bright); /* BUG-01: brighter text on bg-secondary background */
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 8px 16px;
   font-size: 14px;
+  font-weight: 500;
   font-family: var(--font-stack);
   cursor: pointer;
   min-width: 52px;
   min-height: 44px;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .duration-btn:hover {
-  background: var(--bg-tertiary);
+  background: rgba(33, 38, 45, 0.8);
   color: var(--text-primary);
+  border-color: rgba(88, 166, 255, 0.3);
+  box-shadow: 0 0 12px rgba(88, 166, 255, 0.1);
 }
 
 /* BUG-24: Match design spec - active duration has green border, tertiary bg */
 .duration-btn.active {
-  background: var(--bg-tertiary);
+  background: rgba(33, 38, 45, 0.8);
   color: var(--text-primary);
   border-color: var(--green-4);
+  box-shadow: 0 0 12px var(--glow-green), inset 0 0 12px rgba(57, 211, 83, 0.05);
 }
 
 /* BUG-25d: Button press scale on :active */
@@ -185,8 +218,8 @@ button:focus-visible, a:focus-visible {
 .tag-chip:active,
 .btn-control:active,
 .export-btn:active {
-  transform: scale(0.96);
-  transition: transform 0.1s;
+  transform: scale(0.93);
+  transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Tag selector */
@@ -202,27 +235,37 @@ button:focus-visible, a:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
+  background: var(--glass-bg);
   color: var(--text-secondary-bright); /* BUG-01: brighter text for contrast on secondary bg */
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 6px 14px;
   font-size: 13px;
+  font-weight: 500;
   font-family: var(--font-stack);
   cursor: pointer;
   min-height: 44px;
-  transition: background 0.15s, border-color 0.15s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tag-chip:hover {
-  background: var(--bg-tertiary);
+  background: rgba(33, 38, 45, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .tag-chip .tag-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+}
+
+.tag-chip.active .tag-dot {
+  transform: scale(1.2);
 }
 
 .tag-chip.active {
@@ -230,12 +273,18 @@ button:focus-visible, a:focus-visible {
 }
 
 /* LEO: colored tint background on active tag chips */
-.tag-chip[data-tag="Code"].active { background: rgba(57, 211, 83, 0.12); border-color: var(--tag-code); }
-.tag-chip[data-tag="Design"].active { background: rgba(163, 113, 247, 0.12); border-color: var(--tag-design); }
-.tag-chip[data-tag="Writing"].active { background: rgba(210, 153, 34, 0.12); border-color: var(--tag-writing); }
-.tag-chip[data-tag="Learning"].active { background: rgba(88, 166, 255, 0.12); border-color: var(--tag-learning); }
-.tag-chip[data-tag="Planning"].active { background: rgba(218, 139, 69, 0.12); border-color: var(--tag-planning); }
-.tag-chip[data-tag="Other"].active { background: rgba(72, 79, 88, 0.12); border-color: var(--tag-other); }
+.tag-chip[data-tag="Code"].active { background: rgba(57, 211, 83, 0.12); border-color: var(--tag-code); box-shadow: 0 0 14px rgba(57, 211, 83, 0.15); }
+.tag-chip[data-tag="Code"].active .tag-dot { box-shadow: 0 0 8px rgba(57, 211, 83, 0.6); }
+.tag-chip[data-tag="Design"].active { background: rgba(163, 113, 247, 0.12); border-color: var(--tag-design); box-shadow: 0 0 14px rgba(163, 113, 247, 0.15); }
+.tag-chip[data-tag="Design"].active .tag-dot { box-shadow: 0 0 8px rgba(163, 113, 247, 0.6); }
+.tag-chip[data-tag="Writing"].active { background: rgba(210, 153, 34, 0.12); border-color: var(--tag-writing); box-shadow: 0 0 14px rgba(210, 153, 34, 0.15); }
+.tag-chip[data-tag="Writing"].active .tag-dot { box-shadow: 0 0 8px rgba(210, 153, 34, 0.6); }
+.tag-chip[data-tag="Learning"].active { background: rgba(88, 166, 255, 0.12); border-color: var(--tag-learning); box-shadow: 0 0 14px rgba(88, 166, 255, 0.15); }
+.tag-chip[data-tag="Learning"].active .tag-dot { box-shadow: 0 0 8px rgba(88, 166, 255, 0.6); }
+.tag-chip[data-tag="Planning"].active { background: rgba(218, 139, 69, 0.12); border-color: var(--tag-planning); box-shadow: 0 0 14px rgba(218, 139, 69, 0.15); }
+.tag-chip[data-tag="Planning"].active .tag-dot { box-shadow: 0 0 8px rgba(218, 139, 69, 0.6); }
+.tag-chip[data-tag="Other"].active { background: rgba(72, 79, 88, 0.12); border-color: var(--tag-other); box-shadow: 0 0 14px rgba(72, 79, 88, 0.15); }
+.tag-chip[data-tag="Other"].active .tag-dot { box-shadow: 0 0 8px rgba(72, 79, 88, 0.6); }
 
 .tag-chip[data-tag="Code"] .tag-dot { background: var(--tag-code); }
 .tag-chip[data-tag="Design"] .tag-dot { background: var(--tag-design); }
@@ -244,32 +293,42 @@ button:focus-visible, a:focus-visible {
 .tag-chip[data-tag="Planning"] .tag-dot { background: var(--tag-planning); }
 .tag-chip[data-tag="Other"] .tag-dot { background: var(--tag-other); }
 
+/* v3: Tag pill hover glow matching tag color */
+.tag-chip[data-tag="Code"]:hover { box-shadow: 0 4px 16px rgba(57, 211, 83, 0.2); }
+.tag-chip[data-tag="Design"]:hover { box-shadow: 0 4px 16px rgba(163, 113, 247, 0.2); }
+.tag-chip[data-tag="Writing"]:hover { box-shadow: 0 4px 16px rgba(210, 153, 34, 0.2); }
+.tag-chip[data-tag="Learning"]:hover { box-shadow: 0 4px 16px rgba(88, 166, 255, 0.2); }
+.tag-chip[data-tag="Planning"]:hover { box-shadow: 0 4px 16px rgba(218, 139, 69, 0.2); }
+.tag-chip[data-tag="Other"]:hover { box-shadow: 0 4px 16px rgba(72, 79, 88, 0.2); }
+
 /* Timer ring */
 /* BUG-22: Match design spec 256x256 SVG, r=108 */
 .timer-container {
   position: relative;
-  width: 256px;
-  height: 256px;
-  margin-bottom: 24px;
+  width: 280px;
+  height: 280px;
+  margin-bottom: 32px;
 }
 
 .timer-svg {
-  width: 256px;
-  height: 256px;
+  width: 280px;
+  height: 280px;
   transform: rotate(-90deg);
+  filter: drop-shadow(0 0 20px var(--glow-green));
+  transition: filter 0.5s ease;
 }
 
 .timer-ring-bg {
   fill: none;
-  stroke: var(--bg-tertiary);
-  stroke-width: 8;
+  stroke: rgba(33, 38, 45, 0.6);
+  stroke-width: 10;
 }
 
 /* BUG-23: Focus ring should be green, not blue */
 .timer-ring-progress {
   fill: none;
-  stroke: var(--green-4);
-  stroke-width: 8;
+  stroke: url(#greenGradient);
+  stroke-width: 10;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.1s linear;
 }
@@ -294,6 +353,16 @@ button:focus-visible, a:focus-visible {
   stroke: var(--accent);
 }
 
+/* Subtle idle breathing animation on the timer container */
+@keyframes timer-breathe {
+  0%, 100% { filter: drop-shadow(0 0 16px rgba(57, 211, 83, 0.15)) drop-shadow(0 0 4px rgba(57, 211, 83, 0.1)); }
+  50% { filter: drop-shadow(0 0 28px rgba(57, 211, 83, 0.35)) drop-shadow(0 0 8px rgba(57, 211, 83, 0.2)); }
+}
+
+.timer-svg {
+  animation: timer-breathe 4s ease-in-out infinite;
+}
+
 .timer-display {
   position: absolute;
   top: 50%;
@@ -304,64 +373,95 @@ button:focus-visible, a:focus-visible {
 
 /* BUG-29: Timer digits should use monospace font */
 .timer-digits {
-  font-size: 72px;
-  font-weight: 700;
+  font-size: 76px;
+  font-weight: 800;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   line-height: 1;
-  transition: color 0.3s;
+  transition: color 0.3s, text-shadow 0.3s;
+  text-shadow: 0 0 30px rgba(240, 246, 252, 0.08);
 }
 
 /* BUG-25a: Digit flash green on complete */
 .timer-digits.flash-green {
   color: var(--green-4);
+  text-shadow: 0 0 24px var(--glow-green);
 }
 
 .timer-label {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
-  margin-top: 4px;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
 }
 
 /* Controls */
 .timer-controls {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
 }
 
 .btn-control {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-primary);
-  border: 1px solid var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, transform 0.1s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: var(--font-stack);
 }
 
 .btn-control:hover {
-  background: var(--bg-tertiary);
+  background: rgba(33, 38, 45, 0.9);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 /* BUG-24: Start button default = green per design spec */
 /* LEO: green glow on start button */
 .btn-start {
-  width: 72px;
-  height: 72px;
-  background: var(--green-4);
-  border-color: var(--green-4);
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, #39d353 0%, #26a641 100%);
+  border-color: transparent;
   color: #0d1117;
-  box-shadow: 0 0 20px rgba(57, 211, 83, 0.3);
+  box-shadow: 0 0 30px var(--glow-green), 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-start::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+  transition: left 0.5s ease;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.btn-start:hover::before {
+  left: 100%;
 }
 
 .btn-start:hover {
-  background: #2ea043;
-  border-color: #2ea043;
+  background: linear-gradient(135deg, #45e060 0%, #2ea043 100%);
+  border-color: transparent;
+  box-shadow: 0 0 40px rgba(57, 211, 83, 0.5), 0 0 60px rgba(57, 211, 83, 0.2), 0 6px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px) scale(1.04);
 }
 
 /* BUG-24: Running state = tertiary grey per design spec */
@@ -369,15 +469,17 @@ button:focus-visible, a:focus-visible {
   background: var(--bg-tertiary);
   border-color: var(--bg-tertiary);
   color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-start.running:hover {
   background: #30363d;
+  transform: translateY(-1px);
 }
 
 .btn-skip, .btn-reset {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
 }
 
 .btn-control svg {
@@ -396,25 +498,33 @@ button:focus-visible, a:focus-visible {
 /* BUG-09: Stats panel 240px per design spec */
 .content-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: 24px;
   align-items: start;
 }
 
-/* Stats panel */
+/* Stats panel — glassmorphism */
 .stats-panel {
-  background: var(--bg-secondary);
-  border: 1px solid var(--bg-tertiary);
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
   order: 1;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg);
+  animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.1s;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .stats-panel h2 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   margin-bottom: 16px;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .stats-grid {
@@ -424,29 +534,41 @@ button:focus-visible, a:focus-visible {
 }
 
 .stat-card {
-  background: var(--bg-primary);
-  border-radius: 8px;
-  padding: 12px;
+  background: rgba(10, 14, 23, 0.6);
+  border: 1px solid rgba(48, 54, 61, 0.3);
+  border-radius: 10px;
+  padding: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: rgba(88, 166, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(88, 166, 255, 0.06);
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
   font-weight: 600;
 }
 
 .stat-value {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 /* BUG-28: Streak value color-coded */
 .stat-value.streak-active {
-  color: var(--green-4);
+  background: linear-gradient(135deg, var(--green-4) 0%, #79b8ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: streakPulse 2s ease-in-out infinite;
 }
 
 .stat-value.streak-zero {
@@ -467,19 +589,23 @@ button:focus-visible, a:focus-visible {
   margin-top: 16px;
   padding: 10px;
   min-height: 44px;
-  background: transparent;
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 500;
   font-family: var(--font-stack);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, transform 0.1s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .export-btn:hover {
   color: var(--text-primary);
   border-color: var(--accent);
+  box-shadow: 0 0 14px var(--glow-accent);
 }
 
 .export-btn svg {
@@ -491,36 +617,44 @@ button:focus-visible, a:focus-visible {
 /* Daily Goal Tracker */
 .daily-goal {
   max-width: 480px;
-  margin: 0 auto 24px;
-  padding: 12px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--bg-tertiary);
-  border-radius: 10px;
+  margin: 0 auto 28px;
+  padding: 14px 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 .daily-goal-label {
   font-size: 13px;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 .daily-goal-label strong {
   color: var(--text-primary);
   font-size: 16px;
 }
 .daily-goal-bar {
-  height: 8px;
-  background: var(--bg-tertiary);
-  border-radius: 4px;
+  height: 6px;
+  background: rgba(33, 38, 45, 0.6);
+  border-radius: 3px;
   overflow: hidden;
 }
 .daily-goal-fill {
   height: 100%;
-  background: var(--accent);
-  border-radius: 4px;
-  transition: width 0.4s ease;
+  background: linear-gradient(90deg, var(--accent), #79b8ff);
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px var(--glow-accent);
 }
 .daily-goal-fill.goal-met {
-  background: var(--success);
+  background: linear-gradient(90deg, var(--green-3), var(--green-4));
+  box-shadow: 0 0 10px var(--glow-green);
 }
 
 /* Session History */
@@ -533,25 +667,29 @@ button:focus-visible, a:focus-visible {
   gap: 6px;
   width: 100%;
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
   padding: 8px 10px;
   min-height: 36px;
   color: var(--text-secondary);
   font-size: 13px;
+  font-weight: 500;
   font-family: var(--font-stack);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.session-history-toggle:hover {
+.session-history-toggle:hover,.session-history-toggle:focus-visible {
   color: var(--text-primary);
   border-color: var(--accent);
+  box-shadow: 0 0 10px var(--glow-accent);
 }
+.session-history-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.heatmap-cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:2px}
 .session-history-toggle svg {
   width: 14px;
   height: 14px;
   fill: currentColor;
-  transition: transform 0.2s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .session-history-toggle.open svg {
   transform: rotate(90deg);
@@ -562,15 +700,24 @@ button:focus-visible, a:focus-visible {
 }
 .session-history-list.visible {
   display: block;
+  animation: fadeSlideIn 0.3s ease-out;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .session-history-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--bg-tertiary);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(33, 38, 45, 0.5);
   font-size: 12px;
   color: var(--text-secondary-bright);
+  transition: color 0.2s;
+}
+.session-history-item:hover {
+  color: var(--text-primary);
 }
 .session-history-item:last-child {
   border-bottom: none;
@@ -589,20 +736,28 @@ button:focus-visible, a:focus-visible {
   text-align: center;
 }
 
-/* Heatmap */
+/* Heatmap — glassmorphism */
 .heatmap-section {
-  background: var(--bg-secondary);
-  border: 1px solid var(--bg-tertiary);
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
   order: 2;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg);
+  animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.2s;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .heatmap-section h2 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   margin-bottom: 16px;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .heatmap-wrapper {
@@ -657,23 +812,29 @@ button:focus-visible, a:focus-visible {
 .heatmap-cell {
   width: 12px;
   height: 12px;
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--green-0);
   cursor: pointer;
   position: relative;
-  transition: background-color 0.4s ease-in-out;
+  transition: background-color 0.4s ease-in-out, transform 0.15s ease;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.4);
+  z-index: 2;
 }
 
 .heatmap-cell[data-level="0"] { background: var(--green-0); }
-.heatmap-cell[data-level="1"] { background: var(--green-1); }
-.heatmap-cell[data-level="2"] { background: var(--green-2); }
-.heatmap-cell[data-level="3"] { background: var(--green-3); }
-.heatmap-cell[data-level="4"] { background: var(--green-4); }
+.heatmap-cell[data-level="1"] { background: var(--green-1); box-shadow: 0 0 4px rgba(14, 68, 41, 0.3); }
+.heatmap-cell[data-level="2"] { background: var(--green-2); box-shadow: 0 0 6px rgba(0, 109, 50, 0.35); }
+.heatmap-cell[data-level="3"] { background: var(--green-3); box-shadow: 0 0 8px rgba(38, 166, 65, 0.4); }
+.heatmap-cell[data-level="4"] { background: var(--green-4); box-shadow: 0 0 10px rgba(57, 211, 83, 0.45); }
 
 /* BUG-26: Today's cell outline */
 .heatmap-cell.heatmap-cell--today {
   outline: 2px solid var(--text-secondary);
   outline-offset: -1px;
+  box-shadow: 0 0 8px rgba(88, 166, 255, 0.2);
 }
 
 /* BUG-13: Future dates dimmed */
@@ -695,19 +856,22 @@ button:focus-visible, a:focus-visible {
 /* BUG-25e: Tooltip translateY animation */
 .heatmap-tooltip {
   position: fixed;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border); /* design.md: tooltip border */
+  background: rgba(33, 38, 45, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); /* design.md: tooltip border */
   color: var(--text-primary);
   font-size: 12px;
-  padding: 8px 12px;
-  border-radius: 6px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
   pointer-events: none;
   z-index: 100;
   white-space: nowrap;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
-  box-shadow: 0 4px 12px var(--shadow);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   line-height: 1.4;
   max-width: 240px;
 }
@@ -720,14 +884,16 @@ button:focus-visible, a:focus-visible {
 /* Notification banner */
 .storage-warning {
   display: none;
-  background: #3d1f00;
+  background: rgba(61, 31, 0, 0.8);
   color: #d29922;
   border: 1px solid #5c3d0a;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 20px;
   font-size: 14px;
   text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .storage-warning.visible {
@@ -758,13 +924,20 @@ button:focus-visible, a:focus-visible {
 
 /* BUG-25b: Background cooldown animation on break */
 @keyframes cooldown-bg {
-  0% { background-color: var(--bg-primary); }
-  50% { background-color: #0d1520; }
-  100% { background-color: var(--bg-primary); }
+  0% { background-color: transparent; }
+  50% { background-color: rgba(13, 21, 32, 0.5); }
+  100% { background-color: transparent; }
 }
 
 body.cooldown-anim {
   animation: cooldown-bg 1s ease-in-out;
+}
+
+/* Session transition animation */
+@keyframes sessionPulse {
+  0% { box-shadow: 0 0 0 0 var(--glow-green); }
+  50% { box-shadow: 0 0 0 12px rgba(57, 211, 83, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(57, 211, 83, 0); }
 }
 
 /* Responsive */
@@ -788,14 +961,400 @@ body.cooldown-anim {
   }
 
   .timer-container {
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
   }
 
   .timer-svg {
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
   }
+
+  .app {
+    padding: 16px 12px;
+  }
+
+  .app-header h1 {
+    font-size: 24px;
+  }
+
+  .stats-panel,
+  .heatmap-section {
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .timer-controls {
+    gap: 16px;
+  }
+
+  .btn-start {
+    width: 70px;
+    height: 70px;
+  }
+
+  .btn-skip, .btn-reset {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (max-width: 380px) {
+  .timer-container {
+    width: 220px;
+    height: 220px;
+  }
+
+  .timer-svg {
+    width: 220px;
+    height: 220px;
+  }
+
+  .timer-digits {
+    font-size: 60px;
+  }
+
+  .duration-selector,
+  .tag-selector {
+    gap: 6px;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   v3.0 — Premium Visual Redesign
+   ═══════════════════════════════════════════════ */
+
+/* Spring entrance animation for cards */
+@keyframes cardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Streak pulse animation */
+@keyframes streakPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+
+/* Card hover shadow escalation */
+.stats-panel:hover,
+.heatmap-section:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
+}
+
+/* Button press feedback — deeper scale */
+.btn-start:active {
+  transform: scale(0.90) !important;
+  transition: transform 0.06s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Daily goal card entrance */
+.daily-goal {
+  animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Timer section entrance */
+.timer-section {
+  animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Export button glow on hover */
+.export-btn:hover {
+  box-shadow: 0 0 14px var(--glow-accent), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Streak icon subtle animation */
+.header-streak-icon.visible {
+  animation: streakPulse 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════
+   v4.0 — Session Notes, Focus Sounds, Daily Goal Ring, Export CSV
+   ═══════════════════════════════════════════════ */
+
+/* Session completion modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.visible {
+  display: flex;
+}
+
+.modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow-xl);
+  animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.modal-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.modal-card .modal-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.modal-card textarea {
+  width: 100%;
+  min-height: 72px;
+  max-height: 120px;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-stack);
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modal-card textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--glow-accent);
+}
+
+.modal-card .modal-charcount {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.modal-card .modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.modal-card .modal-btn {
+  padding: 8px 18px;
+  min-height: 38px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.modal-btn-skip {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.modal-btn-skip:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.modal-btn-save {
+  background: linear-gradient(135deg, #39d353, #26a641);
+  color: #0d1117;
+  border-color: transparent;
+}
+
+.modal-btn-save:hover {
+  box-shadow: 0 0 16px var(--glow-green);
+}
+
+/* Session history notes display */
+.session-history-note {
+  display: block;
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Focus Sounds */
+.focus-sounds {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--glass-bg);
+  color: var(--text-secondary-bright);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  min-height: 38px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sound-toggle:hover {
+  background: rgba(33, 38, 45, 0.8);
+  color: var(--text-primary);
+}
+
+.sound-toggle.active {
+  background: rgba(88, 166, 255, 0.12);
+  color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--glow-accent);
+}
+
+.sound-toggle .sound-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.sound-toggle .sound-indicator {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: soundPulse 1.5s ease-in-out infinite;
+}
+
+.sound-toggle.active .sound-indicator {
+  display: inline-block;
+}
+
+@keyframes soundPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Daily Goal Ring */
+.daily-goal-ring-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+}
+
+.daily-goal-ring-svg {
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.daily-goal-ring-bg {
+  fill: none;
+  stroke: rgba(33, 38, 45, 0.6);
+  stroke-width: 6;
+}
+
+.daily-goal-ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.daily-goal-ring-progress.goal-met {
+  stroke: var(--green-4);
+}
+
+.daily-goal-ring-center {
+  position: absolute;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.daily-goal-info {
+  text-align: left;
+}
+
+.daily-goal-info .goal-sessions {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.daily-goal-info .goal-sessions-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.daily-goal-info .goal-time {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Goal celebration */
+@keyframes goalCelebrate {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.08); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.daily-goal.celebrating {
+  animation: goalCelebrate 0.6s ease-in-out;
+  border-color: var(--green-4);
+  box-shadow: 0 0 24px var(--glow-green), 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes goalConfetti {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+}
+
+.goal-confetti-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  animation: goalConfetti 0.9s ease-out forwards;
+  pointer-events: none;
 }
 </style>
 </head>
@@ -818,8 +1377,21 @@ body.cooldown-anim {
   </div>
 
   <div class="daily-goal" id="dailyGoal" aria-label="Daily focus goal">
-    <div class="daily-goal-label">Today: <strong id="dailyGoalText">0m</strong> / 120m goal</div>
-    <div class="daily-goal-bar"><div class="daily-goal-fill" id="dailyGoalFill" style="width:0%"></div></div>
+    <div class="daily-goal-ring-container">
+      <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+        <svg class="daily-goal-ring-svg" viewBox="0 0 72 72" aria-hidden="true">
+          <circle class="daily-goal-ring-bg" cx="36" cy="36" r="30" />
+          <circle class="daily-goal-ring-progress" id="dailyGoalRing" cx="36" cy="36" r="30" />
+        </svg>
+        <span class="daily-goal-ring-center" id="dailyGoalPct">0%</span>
+      </div>
+      <div class="daily-goal-info">
+        <div class="goal-sessions"><span id="dailyGoalSessions">0</span> of <span id="dailyGoalTarget">4</span> sessions</div>
+        <div class="goal-sessions-label">today's progress</div>
+        <div class="goal-time"><span id="dailyGoalText">0m</span> / 120m goal</div>
+      </div>
+    </div>
+    <div class="daily-goal-bar" style="margin-top:12px;"><div class="daily-goal-fill" id="dailyGoalFill" style="width:0%"></div></div>
   </div>
 
   <section class="timer-section" aria-label="Timer">
@@ -842,10 +1414,30 @@ body.cooldown-anim {
       <button class="tag-chip" data-tag="Other" role="radio" aria-checked="false" tabindex="-1" aria-label="Other"><span class="tag-dot"></span>Other</button>
     </div>
 
+    <!-- Focus Sounds -->
+    <div class="focus-sounds" aria-label="Focus sounds">
+      <button class="sound-toggle" data-sound="whitenoise" aria-pressed="false">
+        <span class="sound-icon">~</span>White Noise<span class="sound-indicator"></span>
+      </button>
+      <button class="sound-toggle" data-sound="rain" aria-pressed="false">
+        <span class="sound-icon">&middot;</span>Rain<span class="sound-indicator"></span>
+      </button>
+      <button class="sound-toggle" data-sound="forest" aria-pressed="false">
+        <span class="sound-icon">&hearts;</span>Forest<span class="sound-indicator"></span>
+      </button>
+    </div>
+
     <!-- Timer ring -->
     <!-- BUG-22: Match design spec 256x256, r=108 -->
     <div class="timer-container" style="position:relative;">
       <svg class="timer-svg" viewBox="0 0 256 256" aria-hidden="true">
+        <defs>
+          <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#39d353" />
+            <stop offset="50%" stop-color="#26a641" />
+            <stop offset="100%" stop-color="#58a6ff" />
+          </linearGradient>
+        </defs>
         <circle class="timer-ring-bg" cx="128" cy="128" r="108" />
         <circle class="timer-ring-progress" id="timerRing" cx="128" cy="128" r="108" />
       </svg>
@@ -930,6 +1522,21 @@ body.cooldown-anim {
   </div>
 
   <div class="heatmap-tooltip" id="tooltip"></div>
+
+  <!-- Session completion modal -->
+  <div class="modal-overlay" id="sessionModal">
+    <div class="modal-card">
+      <h3>Session Complete!</h3>
+      <div class="modal-subtitle" id="modalSubtitle">25 min focus session</div>
+      <label for="sessionNoteInput" style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">What did you accomplish?</label>
+      <textarea id="sessionNoteInput" maxlength="200" placeholder="Optional: describe what you worked on..." rows="3"></textarea>
+      <div class="modal-charcount"><span id="noteCharCount">0</span>/200</div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-skip" id="modalSkip">Skip</button>
+        <button class="modal-btn modal-btn-save" id="modalSave">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -997,8 +1604,18 @@ body.cooldown-anim {
   var headerStreakCurrent = $('headerStreakCurrent');
   var headerStreakBest = $('headerStreakBest');
   var headerStreakIcon = $('headerStreakIcon');
+  var sessionModal = $('sessionModal');
+  var sessionNoteInput = $('sessionNoteInput');
+  var noteCharCount = $('noteCharCount');
+  var modalSubtitle = $('modalSubtitle');
+  var modalSkip = $('modalSkip');
+  var modalSave = $('modalSave');
+  var dailyGoalRing = $('dailyGoalRing');
+  var dailyGoalPct = $('dailyGoalPct');
+  var dailyGoalSessions = $('dailyGoalSessions');
   var durationBtns = document.querySelectorAll('.duration-btn');
   var tagChips = document.querySelectorAll('.tag-chip');
+  var soundToggles = document.querySelectorAll('.sound-toggle');
 
   // ---- SVG ring setup ----
   // BUG-22: r=108, circumference = 2*PI*108 = 678.58
@@ -1006,6 +1623,12 @@ body.cooldown-anim {
   var RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
   timerRing.style.strokeDasharray = RING_CIRCUMFERENCE;
   timerRing.style.strokeDashoffset = '0';
+
+  // v4: Daily goal ring setup
+  var GOAL_RING_RADIUS = 30;
+  var GOAL_RING_CIRCUMFERENCE = 2 * Math.PI * GOAL_RING_RADIUS;
+  dailyGoalRing.style.strokeDasharray = GOAL_RING_CIRCUMFERENCE;
+  dailyGoalRing.style.strokeDashoffset = GOAL_RING_CIRCUMFERENCE;
 
   // ---- Session validation helper (BUG-19) ----
   function validateSession(s) {
@@ -1016,7 +1639,12 @@ body.cooldown-anim {
     if (isNaN(ts) || ts <= 0) return null;
     if (isNaN(duration) || duration <= 0) return null;
     if (TAGS.indexOf(tag) === -1) tag = 'Other';
-    return { ts: ts, duration: duration, tag: tag };
+    var result = { ts: ts, duration: duration, tag: tag };
+    // v4: preserve notes
+    if (s.notes && typeof s.notes === 'string') {
+      result.notes = s.notes.substring(0, 200);
+    }
+    return result;
   }
 
   function loadValidSessions() {
@@ -1282,25 +1910,13 @@ body.cooldown-anim {
     if (!state.isBreak) {
       // Focus session completed
       state.sessionsCompleted++;
-      var session = {
+
+      // v4: Store pending session data for modal
+      state.pendingSession = {
         ts: state.sessionStartTs,
         duration: state.focusDuration,
         tag: state.selectedTag
       };
-      var sessions = loadSessions();
-      sessions.push(session);
-      saveSessions(sessions);
-      updateStats();
-      updateDailyGoal();
-      if (historyList.classList.contains('visible')) renderSessionHistory();
-      renderHeatmap();
-
-      // BUG-25c: Glow today's cell after heatmap re-render
-      var todayCell = heatmapGrid.querySelector('.heatmap-cell--today');
-      if (todayCell) {
-        todayCell.classList.add('cell-glow');
-        setTimeout(function() { todayCell.classList.remove('cell-glow'); }, 1300);
-      }
 
       playChime();
       showNotification('Focus session complete! Time for a break.');
@@ -1325,6 +1941,9 @@ body.cooldown-anim {
       timerLabel.textContent = 'Break \u2014 ' + breakDur + 'm';
       updateTimerDisplay(breakDur * 60);
       resetRing();
+
+      // v4: Show session notes modal
+      showSessionModal();
 
     } else {
       // Break completed
@@ -1784,15 +2403,13 @@ body.cooldown-anim {
     headerStreakIcon.classList.toggle('visible', current > 0);
   }
 
-  // ---- CSV Export ----
-  // BUG-07: CSV escaping + BUG-08: data validation
+  // ---- CSV Export (v4: added Notes column) ----
   btnExport.addEventListener('click', function() {
-    var sessions = loadValidSessions(); // BUG-08/19: validated
-    // BUG-07: UTF-8 BOM for Excel compatibility
-    var csv = '\uFEFF' + 'date,start_time,duration_minutes,tag\n';
+    var sessions = loadValidSessions();
+    // v4: Added Notes column
+    var csv = '\uFEFF' + 'date,start_time,duration_minutes,tag,notes\n';
     sessions.forEach(function(s) {
       var d = new Date(s.ts);
-      // BUG-08: Skip invalid dates
       if (isNaN(d.getTime())) return;
       var dateStr = d.getFullYear() + '-' +
         ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
@@ -1801,8 +2418,7 @@ body.cooldown-anim {
         ('0' + d.getHours()).slice(-2) + ':' +
         ('0' + d.getMinutes()).slice(-2) + ':' +
         ('0' + d.getSeconds()).slice(-2);
-      // BUG-07: Escape all fields
-      csv += csvEscape(dateStr) + ',' + csvEscape(timeStr) + ',' + csvEscape(s.duration) + ',' + csvEscape(s.tag) + '\n';
+      csv += csvEscape(dateStr) + ',' + csvEscape(timeStr) + ',' + csvEscape(s.duration) + ',' + csvEscape(s.tag) + ',' + csvEscape(s.notes || '') + '\n';
     });
 
     var today = new Date();
@@ -1820,25 +2436,262 @@ body.cooldown-anim {
     URL.revokeObjectURL(url);
   });
 
-  // ---- Daily Goal Tracker ----
+  // ---- Daily Goal Tracker (v4: ring + session count + celebration) ----
   var DAILY_GOAL = 120; // minutes
+  var DAILY_GOAL_SESSIONS = 4; // target session count
   var dailyGoalText = $('dailyGoalText');
   var dailyGoalFill = $('dailyGoalFill');
+  var previousGoalMet = false;
 
   function updateDailyGoal() {
     try {
       var sessions = loadValidSessions();
       var todayKey = dateKey(new Date());
       var todayMin = 0;
+      var todayCount = 0;
       sessions.forEach(function(s) {
-        if (dateKey(new Date(s.ts)) === todayKey) todayMin += s.duration;
+        if (dateKey(new Date(s.ts)) === todayKey) {
+          todayMin += s.duration;
+          todayCount++;
+        }
       });
       dailyGoalText.textContent = formatMinutes(todayMin);
       var pct = Math.min(100, Math.round((todayMin / DAILY_GOAL) * 100));
       dailyGoalFill.style.width = pct + '%';
       dailyGoalFill.classList.toggle('goal-met', todayMin >= DAILY_GOAL);
+
+      // v4: Update ring
+      var ringOffset = GOAL_RING_CIRCUMFERENCE - (GOAL_RING_CIRCUMFERENCE * (pct / 100));
+      dailyGoalRing.style.strokeDashoffset = ringOffset;
+      dailyGoalRing.classList.toggle('goal-met', todayMin >= DAILY_GOAL);
+      dailyGoalPct.textContent = pct + '%';
+
+      // v4: Session count
+      dailyGoalSessions.textContent = todayCount;
+
+      // v4: Celebration animation on first goal completion
+      var goalMet = todayMin >= DAILY_GOAL;
+      if (goalMet && !previousGoalMet) {
+        var goalEl = $('dailyGoal');
+        goalEl.classList.add('celebrating');
+        spawnGoalConfetti(goalEl);
+        setTimeout(function() { goalEl.classList.remove('celebrating'); }, 700);
+      }
+      previousGoalMet = goalMet;
     } catch (e) { /* non-critical */ }
   }
+
+  function spawnGoalConfetti(container) {
+    var colors = ['#39d353', '#58a6ff', '#a371f7', '#d29922', '#79b8ff'];
+    for (var i = 0; i < 16; i++) {
+      var p = document.createElement('div');
+      p.className = 'goal-confetti-particle';
+      var angle = (Math.PI * 2 / 16) * i;
+      var dist = 40 + Math.random() * 80;
+      p.style.setProperty('--tx', (Math.cos(angle) * dist) + 'px');
+      p.style.setProperty('--ty', (Math.sin(angle) * dist) + 'px');
+      p.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+      p.style.background = colors[i % colors.length];
+      p.style.left = '50%';
+      p.style.top = '50%';
+      container.appendChild(p);
+      (function(el) {
+        setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 1000);
+      })(p);
+    }
+  }
+
+  // ---- Session Notes Modal (v4) ----
+  function showSessionModal() {
+    sessionNoteInput.value = '';
+    noteCharCount.textContent = '0';
+    modalSubtitle.textContent = state.pendingSession.duration + ' min ' + state.pendingSession.tag.toLowerCase() + ' session';
+    sessionModal.classList.add('visible');
+    setTimeout(function() { sessionNoteInput.focus(); }, 100);
+  }
+
+  function finalizeSession(notes) {
+    var session = state.pendingSession;
+    if (!session) return;
+    if (notes && notes.trim()) {
+      session.notes = notes.trim().substring(0, 200);
+    }
+    var sessions = loadSessions();
+    sessions.push(session);
+    saveSessions(sessions);
+    state.pendingSession = null;
+    updateStats();
+    updateDailyGoal();
+    if (historyList.classList.contains('visible')) renderSessionHistory();
+    renderHeatmap();
+
+    // BUG-25c: Glow today's cell
+    var todayCell = heatmapGrid.querySelector('.heatmap-cell--today');
+    if (todayCell) {
+      todayCell.classList.add('cell-glow');
+      setTimeout(function() { todayCell.classList.remove('cell-glow'); }, 1300);
+    }
+
+    sessionModal.classList.remove('visible');
+  }
+
+  sessionNoteInput.addEventListener('input', function() {
+    var len = sessionNoteInput.value.length;
+    noteCharCount.textContent = len;
+  });
+
+  modalSave.addEventListener('click', function() {
+    finalizeSession(sessionNoteInput.value);
+  });
+
+  modalSkip.addEventListener('click', function() {
+    finalizeSession('');
+  });
+
+  // Close modal on overlay click
+  sessionModal.addEventListener('click', function(e) {
+    if (e.target === sessionModal) {
+      finalizeSession('');
+    }
+  });
+
+  // Enter to save, Escape to skip
+  sessionNoteInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      finalizeSession(sessionNoteInput.value);
+    } else if (e.key === 'Escape') {
+      finalizeSession('');
+    }
+  });
+
+  // ---- Focus Sounds (v4) ----
+  var activeSoundType = null;
+  var activeSoundNodes = null;
+
+  function createWhiteNoise(ctx) {
+    var bufferSize = 2 * ctx.sampleRate;
+    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    var output = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    var source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    return source;
+  }
+
+  function createBrownNoise(ctx) {
+    // Rain-like: brown noise (filtered random walk)
+    var bufferSize = 2 * ctx.sampleRate;
+    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    var output = buffer.getChannelData(0);
+    var lastOut = 0;
+    for (var i = 0; i < bufferSize; i++) {
+      var white = Math.random() * 2 - 1;
+      output[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = output[i];
+      output[i] *= 3.5;
+    }
+    var source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    return source;
+  }
+
+  function createForestSound(ctx) {
+    // Forest: layered filtered noise with gentle modulation
+    var bufferSize = 2 * ctx.sampleRate;
+    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    var output = buffer.getChannelData(0);
+    var lastOut = 0;
+    for (var i = 0; i < bufferSize; i++) {
+      var white = Math.random() * 2 - 1;
+      // Mix pink-ish noise with slow amplitude variation
+      output[i] = (lastOut + (0.04 * white)) / 1.04;
+      lastOut = output[i];
+      // Gentle amplitude modulation to simulate rustling
+      output[i] *= 2.5 * (0.7 + 0.3 * Math.sin(i / (ctx.sampleRate * 0.8)));
+    }
+    var source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    return source;
+  }
+
+  function startFocusSound(type) {
+    stopFocusSound();
+    var ctx = getAudioContext();
+    if (!ctx) return;
+
+    var source;
+    var filter = ctx.createBiquadFilter();
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.5); // fade in
+
+    if (type === 'whitenoise') {
+      source = createWhiteNoise(ctx);
+      filter.type = 'lowpass';
+      filter.frequency.value = 4000;
+    } else if (type === 'rain') {
+      source = createBrownNoise(ctx);
+      filter.type = 'lowpass';
+      filter.frequency.value = 1500;
+    } else if (type === 'forest') {
+      source = createForestSound(ctx);
+      filter.type = 'bandpass';
+      filter.frequency.value = 800;
+      filter.Q.value = 0.5;
+    }
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+
+    activeSoundType = type;
+    activeSoundNodes = { source: source, gain: gain, filter: filter };
+  }
+
+  function stopFocusSound() {
+    if (activeSoundNodes) {
+      try {
+        var ctx = getAudioContext();
+        if (ctx) {
+          activeSoundNodes.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+          var nodes = activeSoundNodes;
+          setTimeout(function() {
+            try { nodes.source.stop(); } catch (e) {}
+          }, 400);
+        }
+      } catch (e) {}
+      activeSoundNodes = null;
+    }
+    activeSoundType = null;
+  }
+
+  soundToggles.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var type = btn.dataset.sound;
+      if (activeSoundType === type) {
+        // Toggle off
+        stopFocusSound();
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      } else {
+        // Deactivate others
+        soundToggles.forEach(function(b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        startFocusSound(type);
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      }
+    });
+  });
 
   // ---- Session History ----
   var historyToggle = $('historyToggle');
@@ -1859,19 +2712,42 @@ body.cooldown-anim {
         historyList.innerHTML = '<div class="session-history-empty">No sessions yet</div>';
         return;
       }
-      var html = '';
+      // v4: Build DOM safely to show notes
+      historyList.innerHTML = '';
       recent.forEach(function(s) {
         var d = new Date(s.ts);
         var dateStr = ('0' + (d.getMonth() + 1)).slice(-2) + '/' +
           ('0' + d.getDate()).slice(-2) + ' ' +
           ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
         var color = TAG_COLORS[s.tag] || TAG_COLORS.Other;
-        html += '<div class="session-history-item">' +
-          '<span><span class="session-history-tag" style="background:' + color + '"></span>' +
-          dateStr + '</span>' +
-          '<span>' + s.duration + 'm ' + s.tag + '</span></div>';
+
+        var item = document.createElement('div');
+        item.className = 'session-history-item';
+        item.style.flexWrap = 'wrap';
+
+        var leftSpan = document.createElement('span');
+        var dot = document.createElement('span');
+        dot.className = 'session-history-tag';
+        dot.style.background = color;
+        leftSpan.appendChild(dot);
+        leftSpan.appendChild(document.createTextNode(dateStr));
+        item.appendChild(leftSpan);
+
+        var rightSpan = document.createElement('span');
+        rightSpan.textContent = s.duration + 'm ' + s.tag;
+        item.appendChild(rightSpan);
+
+        // v4: Show note if present
+        if (s.notes) {
+          var noteEl = document.createElement('span');
+          noteEl.className = 'session-history-note';
+          noteEl.textContent = s.notes;
+          noteEl.title = s.notes;
+          item.appendChild(noteEl);
+        }
+
+        historyList.appendChild(item);
       });
-      historyList.innerHTML = html;
     } catch (e) {
       historyList.innerHTML = '<div class="session-history-empty">Error loading history</div>';
     }
