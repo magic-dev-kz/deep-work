@@ -2054,6 +2054,12 @@ body.cooldown-anim {
         <span class="sound-icon">&#9835;</span>Lo-fi<span class="sound-indicator"></span>
       </button>
     </div>
+    <!-- v16: Ambient sound volume slider -->
+    <div class="sound-volume-wrap" id="soundVolumeWrap" style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:0 4px;">
+      <span style="font-size:0.75rem;color:var(--text-secondary,#aaa);">&#128264;</span>
+      <input type="range" id="soundVolume" min="0" max="100" value="30" style="flex:1;accent-color:var(--accent,#39d353);height:4px;cursor:pointer;" aria-label="Ambient sound volume">
+      <span id="soundVolumeLabel" style="font-size:0.72rem;font-weight:600;color:var(--text-secondary,#aaa);min-width:28px;text-align:right;">30%</span>
+    </div>
 
     <!-- v8: Distraction Counter -->
     <button class="distraction-btn" id="distractionBtn" aria-label="Got distracted">
@@ -3526,8 +3532,11 @@ body.cooldown-anim {
     var source;
     var filter = ctx.createBiquadFilter();
     var gain = ctx.createGain();
+    // v16: Use volume slider value
+    var volSlider = document.getElementById('soundVolume');
+    var volVal = volSlider ? (parseInt(volSlider.value, 10) / 100) * 0.3 : 0.15;
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.5); // fade in
+    gain.gain.linearRampToValueAtTime(volVal, ctx.currentTime + 0.5); // fade in
 
     if (type === 'whitenoise') {
       source = createWhiteNoise(ctx);
@@ -3590,6 +3599,22 @@ body.cooldown-anim {
       }
     });
   });
+
+  // ---- v16: Volume slider live update ----
+  var soundVolumeSlider = document.getElementById('soundVolume');
+  var soundVolumeLabel = document.getElementById('soundVolumeLabel');
+  if (soundVolumeSlider) {
+    soundVolumeSlider.addEventListener('input', function() {
+      var pct = parseInt(soundVolumeSlider.value, 10);
+      if (soundVolumeLabel) soundVolumeLabel.textContent = pct + '%';
+      if (activeSoundNodes && activeSoundNodes.gain) {
+        var ctx = getAudioContext();
+        if (ctx) {
+          activeSoundNodes.gain.gain.linearRampToValueAtTime((pct / 100) * 0.3, ctx.currentTime + 0.1);
+        }
+      }
+    });
+  }
 
   // ---- Session History ----
   var historyToggle = $('historyToggle');

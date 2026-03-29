@@ -1,5 +1,9 @@
 # Changelog
 
+## v16.0 (2026-03-29) — Sound Volume Slider
+
+- **Volume Slider**: Ambient sound volume control (0-100%) with live adjustment
+- SW cache bumped to `deepwork-v16`
 ## v15.0 — Session Journal (2026-03-29)
 
 **Session Journal**
