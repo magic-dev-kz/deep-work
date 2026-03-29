@@ -1169,8 +1169,8 @@ body.cooldown-anim {
 
 .modal-card textarea {
   width: 100%;
-  min-height: 72px;
-  max-height: 120px;
+  min-height: 100px;
+  max-height: 180px;
   padding: 10px 12px;
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -1192,6 +1192,9 @@ body.cooldown-anim {
   font-size: 11px;
   color: var(--text-secondary);
   text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 4px;
 }
 
@@ -2200,9 +2203,9 @@ body.cooldown-anim {
       </div>
       <!-- v8: Distraction summary -->
       <div class="modal-distractions hidden" id="modalDistractions">Distractions: <span id="modalDistractionCount">0</span></div>
-      <label for="sessionNoteInput" style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">What did you accomplish?</label>
-      <textarea id="sessionNoteInput" maxlength="200" placeholder="Optional: describe what you worked on..." rows="3"></textarea>
-      <div class="modal-charcount"><span id="noteCharCount">0</span>/200</div>
+      <label for="sessionNoteInput" style="font-size:14px;font-weight:600;color:var(--text-primary);display:block;margin-bottom:8px;margin-top:12px;">Session Journal</label>
+      <textarea id="sessionNoteInput" maxlength="500" placeholder="What did you accomplish this session? Key insights, progress, blockers..." rows="5" style="min-height:100px"></textarea>
+      <div class="modal-charcount"><span style="font-size:10px;color:var(--text-secondary);opacity:0.7">Saved separately per session</span><span><span id="noteCharCount">0</span>/500</span></div>
       <div class="modal-actions">
         <button class="modal-btn modal-btn-skip" id="modalSkip">Skip</button>
         <button class="modal-btn modal-btn-save" id="modalSave">Save</button>
@@ -3286,7 +3289,8 @@ body.cooldown-anim {
     var session = state.pendingSession;
     if (!session) return;
     if (notes && notes.trim()) {
-      session.notes = notes.trim().substring(0, 200);
+      session.notes = notes.trim().substring(0, 500);
+      session.journal = notes.trim().substring(0, 500);
     }
     // v8: Preserve distraction count
     if (typeof session.distractions !== 'number') session.distractions = 0;
@@ -3631,12 +3635,23 @@ body.cooldown-anim {
         rightSpan.textContent = s.duration + 'm ' + s.tag;
         item.appendChild(rightSpan);
 
-        // v4: Show note if present
-        if (s.notes) {
+        // v4/v15: Show journal note if present
+        var journalText = s.journal || s.notes;
+        if (journalText) {
           var noteEl = document.createElement('span');
           noteEl.className = 'session-history-note';
-          noteEl.textContent = s.notes;
-          noteEl.title = s.notes;
+          if (s.journal) {
+            noteEl.style.whiteSpace = 'normal';
+            noteEl.style.fontSize = '12px';
+            noteEl.style.lineHeight = '1.4';
+            noteEl.style.marginTop = '4px';
+            noteEl.style.padding = '6px 8px';
+            noteEl.style.background = 'var(--bg-tertiary)';
+            noteEl.style.borderRadius = '6px';
+            noteEl.style.fontStyle = 'normal';
+          }
+          noteEl.textContent = journalText;
+          noteEl.title = journalText;
           item.appendChild(noteEl);
         }
 

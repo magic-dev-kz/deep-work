@@ -1,5 +1,21 @@
 # Changelog
 
+## v15.0 — Session Journal (2026-03-29)
+
+**Session Journal**
+- Enhanced the post-session "What did you accomplish?" textarea into a prominent Session Journal
+- Textarea expanded: 5 rows, min-height 100px, max-height 180px
+- Label upgraded to bold "Session Journal" heading
+- Character limit increased from 200 to 500 for more detailed entries
+- Journal text saved as `journal` field on session (alongside `notes` for backward compat)
+- History view shows journal entries in styled blocks with background, not truncated
+- "Saved separately per session" hint in the char counter row
+
+### Technical
+- Service worker cache bumped to `deepwork-v15`
+
+---
+
 ## v14.0 — Daily Focus Quote (2026-03-29)
 
 **Daily Focus Quote**
