@@ -1968,7 +1968,7 @@ body.cooldown-anim {
 <div class="app">
   <header class="app-header">
     <h1>Deep Work Timer</h1>
-    <p>Track your focus. See the progress.</p>
+    <p id="dailyFocusQuote" style="font-style:italic;opacity:0.85;min-height:1.2em;"></p>
     <!-- BUG-27: Streak display in header per design spec -->
     <div class="header-streak" id="headerStreak">
       <svg class="header-streak-icon" id="headerStreakIcon" viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
@@ -2275,6 +2275,31 @@ body.cooldown-anim {
   var storageWarning = $('storageWarning');
   var confettiContainer = $('confettiContainer');
   var timerSvg = document.querySelector('.timer-svg');
+  // v14: Daily focus quote
+  (function() {
+    var FOCUS_QUOTES = [
+      "The successful warrior is the average man, with laser-like focus. \u2014 Bruce Lee",
+      "Concentrate all your thoughts upon the work at hand. \u2014 Alexander Graham Bell",
+      "It is during our darkest moments that we must focus to see the light. \u2014 Aristotle",
+      "Where focus goes, energy flows. \u2014 Tony Robbins",
+      "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment. \u2014 Buddha",
+      "The key to success is to focus on goals, not obstacles.",
+      "Starve your distractions, feed your focus.",
+      "Deep work is the ability to focus without distraction on a cognitively demanding task. \u2014 Cal Newport",
+      "You can always find a distraction if you are looking for one. \u2014 Tom Kite",
+      "Lack of direction, not lack of time, is the problem. We all have 24-hour days. \u2014 Zig Ziglar",
+      "The art of being wise is the art of knowing what to overlook. \u2014 William James",
+      "Your focus determines your reality. \u2014 Qui-Gon Jinn",
+      "Focus is a matter of deciding what things you are not going to do. \u2014 John Carmack",
+      "Be like a postage stamp: stick to one thing until you get there. \u2014 Josh Billings",
+      "A clear vision, backed by definite plans, gives you a tremendous feeling of confidence and personal power. \u2014 Brian Tracy",
+      "Productivity is never an accident. It is always the result of a commitment to excellence. \u2014 Paul J. Meyer"
+    ];
+    var dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0).getTime()) / 86400000);
+    var quoteEl = $('dailyFocusQuote');
+    if (quoteEl) quoteEl.textContent = FOCUS_QUOTES[dayOfYear % FOCUS_QUOTES.length];
+  })();
+
   var headerStreakCurrent = $('headerStreakCurrent');
   var headerStreakBest = $('headerStreakBest');
   var headerStreakIcon = $('headerStreakIcon');

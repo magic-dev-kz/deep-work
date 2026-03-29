@@ -1,5 +1,18 @@
 # Changelog
 
+## v14.0 — Daily Focus Quote (2026-03-29)
+
+**Daily Focus Quote**
+- Random motivational quote about focus/deep work displayed in the header subtitle area
+- Array of 16 quotes from Bruce Lee, Cal Newport, Buddha, Tony Robbins, and others
+- Quote changes each day based on day-of-year index
+- Replaces the static "Track your focus. See the progress." tagline
+
+### Technical
+- Service worker cache bumped to `deepwork-v14`
+
+---
+
 ## v13.0 — Focus Streak Visualization (2026-03-29)
 
 **Focus Streak Bar Chart**
