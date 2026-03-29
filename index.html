@@ -1247,6 +1247,143 @@ body.cooldown-anim {
   text-overflow: ellipsis;
 }
 
+/* v8: Distraction Counter */
+.distraction-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: rgba(248, 81, 73, 0.08);
+  color: var(--danger);
+  border: 1px solid rgba(248, 81, 73, 0.25);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  min-height: 38px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.distraction-btn.visible {
+  display: inline-flex;
+}
+
+.distraction-btn:hover {
+  background: rgba(248, 81, 73, 0.16);
+  border-color: rgba(248, 81, 73, 0.4);
+  box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+}
+
+.distraction-btn:active {
+  transform: scale(0.93);
+  transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.distraction-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger);
+  color: #0d1117;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 5px;
+}
+
+.modal-distractions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--danger);
+  margin-bottom: 12px;
+}
+
+.modal-distractions.hidden {
+  display: none;
+}
+
+/* v8: Session comparison bar */
+.weekly-comparison {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.weekly-comparison-title {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.comparison-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comparison-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comparison-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  min-width: 72px;
+}
+
+.comparison-bar-bg {
+  flex: 1;
+  height: 16px;
+  background: rgba(33, 38, 45, 0.6);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.comparison-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comparison-bar-fill.this-week {
+  background: linear-gradient(90deg, #39d353, #26a641);
+}
+
+.comparison-bar-fill.last-week {
+  background: linear-gradient(90deg, rgba(88, 166, 255, 0.6), rgba(88, 166, 255, 0.3));
+}
+
+.comparison-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 36px;
+  text-align: right;
+}
+
+.comparison-trend {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.comparison-trend.positive { color: var(--green-4); }
+.comparison-trend.negative { color: var(--danger); }
+.comparison-trend.neutral { color: var(--text-secondary); }
+
 /* Focus Sounds */
 .focus-sounds {
   display: flex;
@@ -1760,10 +1897,15 @@ body.cooldown-anim {
       <button class="sound-toggle" data-sound="rain" aria-pressed="false">
         <span class="sound-icon">&middot;</span>Rain<span class="sound-indicator"></span>
       </button>
-      <button class="sound-toggle" data-sound="forest" aria-pressed="false">
-        <span class="sound-icon">&hearts;</span>Forest<span class="sound-indicator"></span>
+      <button class="sound-toggle" data-sound="lofi" aria-pressed="false">
+        <span class="sound-icon">&#9835;</span>Lo-fi<span class="sound-indicator"></span>
       </button>
     </div>
+
+    <!-- v8: Distraction Counter -->
+    <button class="distraction-btn" id="distractionBtn" aria-label="Got distracted">
+      Got distracted <span class="distraction-badge" id="distractionBadge">0</span>
+    </button>
 
     <!-- Timer ring -->
     <!-- BUG-22: Match design spec 256x256, r=108 -->
@@ -1881,6 +2023,8 @@ body.cooldown-anim {
         <div class="focus-score-breakdown" id="focusScoreBreakdown"></div>
         <span class="focus-score-grade" id="focusScoreGrade"></span>
       </div>
+      <!-- v8: Distraction summary -->
+      <div class="modal-distractions hidden" id="modalDistractions">Distractions: <span id="modalDistractionCount">0</span></div>
       <label for="sessionNoteInput" style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">What did you accomplish?</label>
       <textarea id="sessionNoteInput" maxlength="200" placeholder="Optional: describe what you worked on..." rows="3"></textarea>
       <div class="modal-charcount"><span id="noteCharCount">0</span>/200</div>
@@ -1921,7 +2065,8 @@ body.cooldown-anim {
     sessionStartTs: 0,
     storageError: false,
     perfStart: 0,       // BUG-11: performance.now() at timer start for clock-change detection
-    dateNowStart: 0     // BUG-11: Date.now() at timer start
+    dateNowStart: 0,    // BUG-11: Date.now() at timer start
+    distractionCount: 0 // v8: distraction counter
   };
 
   // BUG-18: Reuse single AudioContext
@@ -1970,6 +2115,11 @@ body.cooldown-anim {
   var durationBtns = document.querySelectorAll('.duration-btn');
   var tagChips = document.querySelectorAll('.tag-chip');
   var soundToggles = document.querySelectorAll('.sound-toggle');
+  // v8: Distraction counter
+  var distractionBtn = $('distractionBtn');
+  var distractionBadge = $('distractionBadge');
+  var modalDistractions = $('modalDistractions');
+  var modalDistractionCount = $('modalDistractionCount');
 
   // ---- SVG ring setup ----
   // BUG-22: r=108, circumference = 2*PI*108 = 678.58
@@ -1997,6 +2147,10 @@ body.cooldown-anim {
     // v4: preserve notes
     if (s.notes && typeof s.notes === 'string') {
       result.notes = s.notes.substring(0, 200);
+    }
+    // v8: preserve distractions
+    if (typeof s.distractions === 'number' && s.distractions >= 0) {
+      result.distractions = s.distractions;
     }
     return result;
   }
@@ -2201,6 +2355,10 @@ body.cooldown-anim {
       timerSvg.classList.remove('active-glow-break');
       timerSvg.classList.add('active-glow');
       state.sessionStartTs = Date.now();
+      // v8: Reset distraction counter on new focus session
+      state.distractionCount = 0;
+      distractionBadge.textContent = '0';
+      distractionBtn.classList.add('visible');
     }
 
     state.totalDuration = durationSec;
@@ -2281,7 +2439,8 @@ body.cooldown-anim {
       state.pendingSession = {
         ts: state.sessionStartTs,
         duration: state.focusDuration,
-        tag: state.selectedTag
+        tag: state.selectedTag,
+        distractions: state.distractionCount // v8
       };
 
       playChime();
@@ -2300,6 +2459,8 @@ body.cooldown-anim {
       state.isBreak = true;
       state.isRunning = false;
       state.isPaused = false;
+      // v8: Hide distraction button
+      distractionBtn.classList.remove('visible');
       updateStartButton();
       disableSelectors(false);
 
@@ -2354,6 +2515,10 @@ body.cooldown-anim {
     state.isRunning = false;
     state.isPaused = false;
     state.isBreak = false;
+    // v8: Reset distraction counter
+    state.distractionCount = 0;
+    distractionBadge.textContent = '0';
+    distractionBtn.classList.remove('visible');
     updateStartButton();
     disableSelectors(false);
     timerLabel.textContent = 'Focus';
@@ -2872,6 +3037,13 @@ body.cooldown-anim {
     sessionNoteInput.value = '';
     noteCharCount.textContent = '0';
     modalSubtitle.textContent = state.pendingSession.duration + ' min ' + state.pendingSession.tag.toLowerCase() + ' session';
+    // v8: Show distraction count in modal
+    if (state.distractionCount > 0) {
+      modalDistractions.classList.remove('hidden');
+      modalDistractionCount.textContent = state.distractionCount;
+    } else {
+      modalDistractions.classList.add('hidden');
+    }
     sessionModal.classList.add('visible');
 
     // v5: Calculate and animate Focus Score
@@ -2889,6 +3061,8 @@ body.cooldown-anim {
     if (notes && notes.trim()) {
       session.notes = notes.trim().substring(0, 200);
     }
+    // v8: Preserve distraction count
+    if (typeof session.distractions !== 'number') session.distractions = 0;
     var sessions = loadSessions();
     sessions.push(session);
     saveSessions(sessions);
@@ -2938,6 +3112,17 @@ body.cooldown-anim {
     }
   });
 
+  // ---- v8: Distraction Counter ----
+  distractionBtn.addEventListener('click', function() {
+    if (!state.isRunning || state.isBreak) return;
+    state.distractionCount++;
+    distractionBadge.textContent = state.distractionCount;
+    // Quick shake animation
+    distractionBtn.style.animation = 'none';
+    void distractionBtn.offsetWidth;
+    distractionBtn.style.animation = '';
+  });
+
   // ---- Focus Sounds (v4) ----
   var activeSoundType = null;
   var activeSoundNodes = null;
@@ -2973,24 +3158,71 @@ body.cooldown-anim {
     return source;
   }
 
-  function createForestSound(ctx) {
-    // Forest: layered filtered noise with gentle modulation
-    var bufferSize = 2 * ctx.sampleRate;
-    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    var output = buffer.getChannelData(0);
-    var lastOut = 0;
-    for (var i = 0; i < bufferSize; i++) {
-      var white = Math.random() * 2 - 1;
-      // Mix pink-ish noise with slow amplitude variation
-      output[i] = (lastOut + (0.04 * white)) / 1.04;
-      lastOut = output[i];
-      // Gentle amplitude modulation to simulate rustling
-      output[i] *= 2.5 * (0.7 + 0.3 * Math.sin(i / (ctx.sampleRate * 0.8)));
-    }
-    var source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    return source;
+  function createLofiSound(ctx) {
+    // Lo-fi: warm oscillator chord with subtle filtering and vinyl crackle texture
+    // Create a warm pad using detuned oscillators
+    var merger = ctx.createChannelMerger(1);
+
+    // Sub bass drone
+    var osc1 = ctx.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.value = 110; // A2
+    var g1 = ctx.createGain();
+    g1.gain.value = 0.06;
+    osc1.connect(g1);
+    g1.connect(merger);
+
+    // Warm pad
+    var osc2 = ctx.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.value = 220; // A3
+    var g2 = ctx.createGain();
+    g2.gain.value = 0.04;
+    osc2.connect(g2);
+    g2.connect(merger);
+
+    // Detuned fifth for warmth
+    var osc3 = ctx.createOscillator();
+    osc3.type = 'triangle';
+    osc3.frequency.value = 329.63; // E4
+    var g3 = ctx.createGain();
+    g3.gain.value = 0.03;
+    osc3.connect(g3);
+    g3.connect(merger);
+
+    // Slow LFO modulation for movement
+    var lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.15;
+    var lfoGain = ctx.createGain();
+    lfoGain.gain.value = 3;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc2.frequency);
+    lfoGain.connect(osc3.frequency);
+
+    osc1.start();
+    osc2.start();
+    osc3.start();
+    lfo.start();
+
+    // Wrap in an object that behaves like a source node
+    var passthrough = ctx.createGain();
+    passthrough.gain.value = 1;
+    merger.connect(passthrough);
+
+    // Store refs for cleanup
+    passthrough._lofiOscs = [osc1, osc2, osc3, lfo];
+    passthrough.stop = function() {
+      try { osc1.stop(); } catch(e) {}
+      try { osc2.stop(); } catch(e) {}
+      try { osc3.stop(); } catch(e) {}
+      try { lfo.stop(); } catch(e) {}
+    };
+    passthrough.connect = function(dest) {
+      return AudioNode.prototype.connect.call(passthrough, dest);
+    }.bind(passthrough);
+
+    return passthrough;
   }
 
   function startFocusSound(type) {
@@ -3012,11 +3244,11 @@ body.cooldown-anim {
       source = createBrownNoise(ctx);
       filter.type = 'lowpass';
       filter.frequency.value = 1500;
-    } else if (type === 'forest') {
-      source = createForestSound(ctx);
-      filter.type = 'bandpass';
-      filter.frequency.value = 800;
-      filter.Q.value = 0.5;
+    } else if (type === 'lofi') {
+      source = createLofiSound(ctx);
+      filter.type = 'lowpass';
+      filter.frequency.value = 2000;
+      filter.Q.value = 0.7;
     }
 
     source.connect(filter);
@@ -3331,6 +3563,92 @@ body.cooldown-anim {
       row.appendChild(valueEl);
       weeklyReportContent.appendChild(row);
     });
+
+    // v8: Session comparison — This week vs Last week
+    var lastWeekStart = new Date(weekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    var lastWeekStartTs = lastWeekStart.getTime();
+    var lastWeekMin = 0;
+    var lastWeekSessions = 0;
+    sessions.forEach(function(s) {
+      if (s.ts >= lastWeekStartTs && s.ts < weekStartTs) {
+        lastWeekMin += s.duration;
+        lastWeekSessions++;
+      }
+    });
+
+    var compDiv = document.createElement('div');
+    compDiv.className = 'weekly-comparison';
+
+    var compTitle = document.createElement('div');
+    compTitle.className = 'weekly-comparison-title';
+    compTitle.textContent = 'This Week vs Last Week';
+    compDiv.appendChild(compTitle);
+
+    var maxMin = Math.max(totalMin, lastWeekMin, 1);
+    var bars = document.createElement('div');
+    bars.className = 'comparison-bars';
+
+    // This week bar
+    var thisRow = document.createElement('div');
+    thisRow.className = 'comparison-row';
+    var thisLabel = document.createElement('span');
+    thisLabel.className = 'comparison-label';
+    thisLabel.textContent = 'This week';
+    var thisBg = document.createElement('div');
+    thisBg.className = 'comparison-bar-bg';
+    var thisFill = document.createElement('div');
+    thisFill.className = 'comparison-bar-fill this-week';
+    thisFill.style.width = Math.round((totalMin / maxMin) * 100) + '%';
+    thisBg.appendChild(thisFill);
+    var thisVal = document.createElement('span');
+    thisVal.className = 'comparison-value';
+    thisVal.textContent = totalHours + 'h';
+    thisRow.appendChild(thisLabel);
+    thisRow.appendChild(thisBg);
+    thisRow.appendChild(thisVal);
+    bars.appendChild(thisRow);
+
+    // Last week bar
+    var lastRow = document.createElement('div');
+    lastRow.className = 'comparison-row';
+    var lastLabel = document.createElement('span');
+    lastLabel.className = 'comparison-label';
+    lastLabel.textContent = 'Last week';
+    var lastBg = document.createElement('div');
+    lastBg.className = 'comparison-bar-bg';
+    var lastFill = document.createElement('div');
+    lastFill.className = 'comparison-bar-fill last-week';
+    lastFill.style.width = Math.round((lastWeekMin / maxMin) * 100) + '%';
+    lastBg.appendChild(lastFill);
+    var lastVal = document.createElement('span');
+    lastVal.className = 'comparison-value';
+    lastVal.textContent = (lastWeekMin / 60).toFixed(1) + 'h';
+    lastRow.appendChild(lastLabel);
+    lastRow.appendChild(lastBg);
+    lastRow.appendChild(lastVal);
+    bars.appendChild(lastRow);
+
+    compDiv.appendChild(bars);
+
+    // Trend text
+    var trendDiv = document.createElement('div');
+    var diff = totalMin - lastWeekMin;
+    if (lastWeekMin === 0 && totalMin === 0) {
+      trendDiv.className = 'comparison-trend neutral';
+      trendDiv.textContent = 'No data yet';
+    } else if (diff > 0) {
+      trendDiv.className = 'comparison-trend positive';
+      trendDiv.textContent = '+' + Math.round(diff) + 'm more than last week';
+    } else if (diff < 0) {
+      trendDiv.className = 'comparison-trend negative';
+      trendDiv.textContent = Math.round(diff) + 'm less than last week';
+    } else {
+      trendDiv.className = 'comparison-trend neutral';
+      trendDiv.textContent = 'Same as last week';
+    }
+    compDiv.appendChild(trendDiv);
+    weeklyReportContent.appendChild(compDiv);
   }
 
   // ---- v7: Keyboard Shortcuts ----

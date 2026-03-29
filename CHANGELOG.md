@@ -1,5 +1,11 @@
 # Changelog
 
+## v8.0 — Distraction Counter, Lo-fi Sound & Session Comparison (2026-03-29)
+- **Distraction Counter**: "Got distracted" button visible during focus sessions. Increments a counter badge on each click. Distraction count shown in the session completion modal summary ("Distractions: N") and persisted with session data. Resets on new session or reset
+- **Focus Music — Lo-fi**: Replaced "Forest" ambient sound with "Lo-fi" — a warm oscillator-based chord pad (A2 sine + A3/E4 triangle with LFO modulation) through the Web Audio API, filtered with a 2kHz lowpass for warmth
+- **Session Comparison**: "This week vs Last week" comparison bar added to the Weekly Report section. Shows side-by-side progress bars with hour values and a trend indicator (+Xm more / -Xm less / same)
+- Service worker cache bumped to `deepwork-v8`
+
 ## v7.0 — PWA Install, Keyboard Shortcuts & Streak Persistence (2026-03-29)
 - **PWA Install Prompt**: `beforeinstallprompt` banner shown after 2+ visits, with Install/Dismiss buttons. Dismissed state persisted in localStorage
 - **Keyboard Shortcuts**: Space = start/pause timer, Escape = reset. Disabled when focus is in input/textarea
