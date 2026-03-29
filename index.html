@@ -1358,6 +1358,232 @@ body.cooldown-anim {
   animation: goalConfetti 0.9s ease-out forwards;
   pointer-events: none;
 }
+
+/* ═══════════════════════════════════════════════
+   v5.0 — Focus Score, Weekly Report, Session Templates
+   ═══════════════════════════════════════════════ */
+
+/* Session Templates */
+.session-templates {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.template-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--glass-bg);
+  color: var(--text-secondary-bright);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  min-width: 120px;
+  min-height: 44px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.template-btn:hover {
+  background: rgba(33, 38, 45, 0.8);
+  color: var(--text-primary);
+  border-color: rgba(88, 166, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 12px rgba(88, 166, 255, 0.1);
+}
+
+.template-btn:active {
+  transform: scale(0.93);
+  transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.template-btn .template-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.template-btn .template-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+}
+
+.template-btn .template-dur {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.template-btn[data-template="quick"]:hover { border-color: var(--green-4); box-shadow: 0 4px 16px rgba(57, 211, 83, 0.15); }
+.template-btn[data-template="deep"]:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(88, 166, 255, 0.15); }
+.template-btn[data-template="sprint"]:hover { border-color: var(--tag-design); box-shadow: 0 4px 16px rgba(163, 113, 247, 0.15); }
+
+/* Focus Score in modal */
+.focus-score-display {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: rgba(10, 14, 23, 0.6);
+  border: 1px solid rgba(48, 54, 61, 0.3);
+  border-radius: 12px;
+}
+
+.focus-score-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.focus-score-value {
+  font-size: 48px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--green-4) 0%, #79b8ff 50%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.focus-score-breakdown {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.focus-score-grade {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.focus-score-grade.grade-s { background: rgba(57, 211, 83, 0.15); color: var(--green-4); border: 1px solid rgba(57, 211, 83, 0.3); }
+.focus-score-grade.grade-a { background: rgba(88, 166, 255, 0.15); color: var(--accent); border: 1px solid rgba(88, 166, 255, 0.3); }
+.focus-score-grade.grade-b { background: rgba(163, 113, 247, 0.15); color: var(--tag-design); border: 1px solid rgba(163, 113, 247, 0.3); }
+.focus-score-grade.grade-c { background: rgba(210, 153, 34, 0.15); color: var(--tag-writing); border: 1px solid rgba(210, 153, 34, 0.3); }
+
+@keyframes scoreCountUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.focus-score-value.animate {
+  animation: scoreCountUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Weekly Report */
+.weekly-report {
+  margin-top: 16px;
+}
+
+.weekly-report-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-height: 36px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weekly-report-toggle:hover, .weekly-report-toggle:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--glow-accent);
+}
+
+.weekly-report-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.weekly-report-toggle svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weekly-report-toggle.open svg {
+  transform: rotate(90deg);
+}
+
+.weekly-report-content {
+  display: none;
+  margin-top: 10px;
+  padding: 14px;
+  background: rgba(10, 14, 23, 0.4);
+  border: 1px solid rgba(48, 54, 61, 0.3);
+  border-radius: 10px;
+}
+
+.weekly-report-content.visible {
+  display: block;
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+.weekly-report-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(33, 38, 45, 0.5);
+  font-size: 12px;
+}
+
+.weekly-report-row:last-child {
+  border-bottom: none;
+}
+
+.weekly-report-row .wr-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.weekly-report-row .wr-value {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.weekly-report-row .wr-value.wr-highlight {
+  background: linear-gradient(135deg, var(--green-4) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 600px) {
+  .session-templates {
+    gap: 8px;
+  }
+  .template-btn {
+    min-width: 100px;
+    padding: 10px 14px;
+  }
+}
 </style>
 </head>
 <body>
@@ -1397,6 +1623,25 @@ body.cooldown-anim {
   </div>
 
   <section class="timer-section" aria-label="Timer">
+    <!-- v5: Session Templates -->
+    <div class="session-templates" aria-label="Session templates">
+      <button class="template-btn" data-template="quick" data-tdur="25" aria-label="Quick Focus — 25 minutes">
+        <span class="template-icon">&#9889;</span>
+        <span class="template-name">Quick Focus</span>
+        <span class="template-dur">25 min</span>
+      </button>
+      <button class="template-btn" data-template="deep" data-tdur="90" aria-label="Deep Work — 90 minutes">
+        <span class="template-icon">&#9881;</span>
+        <span class="template-name">Deep Work</span>
+        <span class="template-dur">90 min</span>
+      </button>
+      <button class="template-btn" data-template="sprint" data-tdur="45" aria-label="Sprint — 45 minutes">
+        <span class="template-icon">&#9733;</span>
+        <span class="template-name">Sprint</span>
+        <span class="template-dur">45 min</span>
+      </button>
+    </div>
+
     <!-- Duration selector -->
     <!-- BUG-04: Fix initial HTML to match default 25m state -->
     <div class="duration-selector" role="radiogroup" aria-label="Focus duration">
@@ -1500,6 +1745,14 @@ body.cooldown-anim {
         </button>
         <div class="session-history-list" id="historyList" role="region"></div>
       </div>
+      <!-- v5: Weekly Report -->
+      <div class="weekly-report">
+        <button class="weekly-report-toggle" id="weeklyReportToggle" aria-expanded="false" aria-controls="weeklyReportContent">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Weekly Report
+        </button>
+        <div class="weekly-report-content" id="weeklyReportContent" role="region"></div>
+      </div>
     </section>
 
     <!-- Heatmap (RIGHT on desktop per design) -->
@@ -1530,6 +1783,13 @@ body.cooldown-anim {
     <div class="modal-card">
       <h3>Session Complete!</h3>
       <div class="modal-subtitle" id="modalSubtitle">25 min focus session</div>
+      <!-- v5: Focus Score -->
+      <div class="focus-score-display" id="focusScoreDisplay">
+        <div class="focus-score-label">Focus Score</div>
+        <div class="focus-score-value" id="focusScoreValue">0</div>
+        <div class="focus-score-breakdown" id="focusScoreBreakdown"></div>
+        <span class="focus-score-grade" id="focusScoreGrade"></span>
+      </div>
       <label for="sessionNoteInput" style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;">What did you accomplish?</label>
       <textarea id="sessionNoteInput" maxlength="200" placeholder="Optional: describe what you worked on..." rows="3"></textarea>
       <div class="modal-charcount"><span id="noteCharCount">0</span>/200</div>
@@ -1548,7 +1808,7 @@ body.cooldown-anim {
   // ---- Constants ----
   var STORAGE_SESSIONS = 'deepwork_sessions';
   var STORAGE_SETTINGS = 'deepwork_settings';
-  var FOCUS_DURATIONS = [15, 25, 35, 50];
+  var FOCUS_DURATIONS = [15, 25, 35, 45, 50, 90];
   var SHORT_BREAK = 5;
   var LONG_BREAK = 15;
   var LONG_BREAK_INTERVAL = 4;
@@ -2509,7 +2769,14 @@ body.cooldown-anim {
     noteCharCount.textContent = '0';
     modalSubtitle.textContent = state.pendingSession.duration + ' min ' + state.pendingSession.tag.toLowerCase() + ' session';
     sessionModal.classList.add('visible');
-    setTimeout(function() { sessionNoteInput.focus(); }, 100);
+
+    // v5: Calculate and animate Focus Score
+    var scoreData = calculateFocusScore(state.pendingSession.duration, state.pendingSession.tag);
+    setTimeout(function() {
+      animateFocusScore(scoreData.total, scoreData);
+    }, 200);
+
+    setTimeout(function() { sessionNoteInput.focus(); }, 400);
   }
 
   function finalizeSession(notes) {
@@ -2753,6 +3020,213 @@ body.cooldown-anim {
     } catch (e) {
       historyList.innerHTML = '<div class="session-history-empty">Error loading history</div>';
     }
+  }
+
+  // ---- v5: Focus Score ----
+  var focusScoreValue = $('focusScoreValue');
+  var focusScoreBreakdown = $('focusScoreBreakdown');
+  var focusScoreGrade = $('focusScoreGrade');
+
+  function calculateFocusScore(duration, tag) {
+    var sessions = loadValidSessions();
+    // 1. Duration component (0-40): longer sessions score higher
+    var durationScore = Math.min(40, Math.round((duration / 90) * 40));
+
+    // 2. Streak component (0-35): consecutive days
+    var now = new Date();
+    var todayKey = dateKey(now);
+    var daySet = {};
+    var uniqueTags = {};
+    sessions.forEach(function(s) {
+      daySet[dateKey(new Date(s.ts))] = true;
+      uniqueTags[s.tag] = true;
+    });
+    // Count current tag too
+    uniqueTags[tag] = true;
+
+    var streak = 0;
+    var checkDate = new Date(now);
+    checkDate.setHours(0, 0, 0, 0);
+    // Include today (session just completed)
+    daySet[todayKey] = true;
+    while (daySet[dateKey(checkDate)]) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    var streakScore = Math.min(35, Math.round(streak * 5));
+
+    // 3. Tag variety bonus (0-25): using diverse tags this week
+    var weekStart = new Date(now);
+    var dow = weekStart.getDay();
+    var diff = dow === 0 ? 6 : dow - 1;
+    weekStart.setDate(weekStart.getDate() - diff);
+    weekStart.setHours(0, 0, 0, 0);
+    var weekStartTs = weekStart.getTime();
+
+    var weekTags = {};
+    sessions.forEach(function(s) {
+      if (s.ts >= weekStartTs) weekTags[s.tag] = true;
+    });
+    weekTags[tag] = true;
+    var tagCount = Object.keys(weekTags).length;
+    var varietyScore = Math.min(25, Math.round((tagCount / 5) * 25));
+
+    var total = Math.min(100, durationScore + streakScore + varietyScore);
+    return {
+      total: total,
+      duration: durationScore,
+      streak: streakScore,
+      variety: varietyScore,
+      streakDays: streak,
+      tagCount: tagCount
+    };
+  }
+
+  function getScoreGrade(score) {
+    if (score >= 85) return { label: 'S', cls: 'grade-s' };
+    if (score >= 65) return { label: 'A', cls: 'grade-a' };
+    if (score >= 40) return { label: 'B', cls: 'grade-b' };
+    return { label: 'C', cls: 'grade-c' };
+  }
+
+  function animateFocusScore(targetScore, breakdown) {
+    focusScoreValue.textContent = '0';
+    focusScoreValue.classList.remove('animate');
+    void focusScoreValue.offsetWidth; // force reflow
+    focusScoreValue.classList.add('animate');
+
+    var grade = getScoreGrade(targetScore);
+    focusScoreGrade.textContent = grade.label;
+    focusScoreGrade.className = 'focus-score-grade ' + grade.cls;
+    focusScoreBreakdown.textContent =
+      'Duration +' + breakdown.duration + '  |  ' +
+      'Streak(' + breakdown.streakDays + 'd) +' + breakdown.streak + '  |  ' +
+      'Variety(' + breakdown.tagCount + ' tags) +' + breakdown.variety;
+
+    var current = 0;
+    var step = Math.max(1, Math.ceil(targetScore / 30));
+    var counterInterval = setInterval(function() {
+      current += step;
+      if (current >= targetScore) {
+        current = targetScore;
+        clearInterval(counterInterval);
+      }
+      focusScoreValue.textContent = current;
+    }, 30);
+  }
+
+  // ---- v5: Session Templates ----
+  var templateBtns = document.querySelectorAll('.template-btn');
+
+  templateBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (state.isRunning) return;
+      var dur = parseInt(btn.dataset.tdur, 10);
+      state.focusDuration = dur;
+
+      // Update duration buttons: deselect all preset buttons since template may not match
+      durationBtns.forEach(function(b) {
+        var isActive = parseInt(b.dataset.duration, 10) === dur;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        b.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      updateTimerDisplay(dur * 60);
+      resetRing();
+      saveSettings({ focusDuration: dur, defaultTag: state.selectedTag });
+
+      // Auto-start the timer
+      state.isBreak = false;
+      startTimer();
+    });
+  });
+
+  // ---- v5: Weekly Report ----
+  var weeklyReportToggle = $('weeklyReportToggle');
+  var weeklyReportContent = $('weeklyReportContent');
+
+  weeklyReportToggle.addEventListener('click', function() {
+    var open = weeklyReportContent.classList.toggle('visible');
+    weeklyReportToggle.classList.toggle('open', open);
+    weeklyReportToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) renderWeeklyReport();
+  });
+
+  function renderWeeklyReport() {
+    var sessions = loadValidSessions();
+    var now = new Date();
+    var weekStart = new Date(now);
+    var dow = weekStart.getDay();
+    var diff = dow === 0 ? 6 : dow - 1;
+    weekStart.setDate(weekStart.getDate() - diff);
+    weekStart.setHours(0, 0, 0, 0);
+    var weekStartTs = weekStart.getTime();
+
+    var totalMin = 0;
+    var sessionCount = 0;
+    var dayMinutes = {};
+    var tagCounts = {};
+    var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    sessions.forEach(function(s) {
+      if (s.ts >= weekStartTs) {
+        totalMin += s.duration;
+        sessionCount++;
+        var d = new Date(s.ts);
+        var dayName = dayNames[d.getDay()];
+        dayMinutes[dayName] = (dayMinutes[dayName] || 0) + s.duration;
+        tagCounts[s.tag] = (tagCounts[s.tag] || 0) + 1;
+      }
+    });
+
+    // Most productive day
+    var bestDay = 'N/A';
+    var bestDayMin = 0;
+    Object.keys(dayMinutes).forEach(function(day) {
+      if (dayMinutes[day] > bestDayMin) {
+        bestDayMin = dayMinutes[day];
+        bestDay = day;
+      }
+    });
+
+    // Top tag
+    var topTag = 'N/A';
+    var topTagCount = 0;
+    Object.keys(tagCounts).forEach(function(tag) {
+      if (tagCounts[tag] > topTagCount) {
+        topTagCount = tagCounts[tag];
+        topTag = tag;
+      }
+    });
+
+    var totalHours = (totalMin / 60).toFixed(1);
+    var avgPerDay = sessionCount > 0 ? (totalMin / Math.min(7, Object.keys(dayMinutes).length)).toFixed(0) : 0;
+
+    // Build DOM
+    weeklyReportContent.innerHTML = '';
+    var rows = [
+      { label: 'Total Hours', value: totalHours + 'h', highlight: true },
+      { label: 'Sessions', value: String(sessionCount), highlight: false },
+      { label: 'Avg / Active Day', value: avgPerDay + 'm', highlight: false },
+      { label: 'Most Productive', value: bestDay, highlight: true },
+      { label: 'Top Tag', value: topTag + (topTagCount > 0 ? ' (' + topTagCount + ')' : ''), highlight: false },
+      { label: 'Active Days', value: Object.keys(dayMinutes).length + ' of 7', highlight: false }
+    ];
+
+    rows.forEach(function(r) {
+      var row = document.createElement('div');
+      row.className = 'weekly-report-row';
+      var labelEl = document.createElement('span');
+      labelEl.className = 'wr-label';
+      labelEl.textContent = r.label;
+      var valueEl = document.createElement('span');
+      valueEl.className = 'wr-value' + (r.highlight ? ' wr-highlight' : '');
+      valueEl.textContent = r.value;
+      row.appendChild(labelEl);
+      row.appendChild(valueEl);
+      weeklyReportContent.appendChild(row);
+    });
   }
 
   // ---- Init ----
