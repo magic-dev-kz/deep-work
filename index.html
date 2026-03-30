@@ -2433,7 +2433,9 @@ body.cooldown-anim {
 
   // ---- Init from settings ----
   var settings = loadSettings();
-  state.focusDuration = FOCUS_DURATIONS.indexOf(settings.focusDuration) !== -1 ? settings.focusDuration : 25;
+  // v19: Clamp restored duration to 1-180
+  var _restoredDur = FOCUS_DURATIONS.indexOf(settings.focusDuration) !== -1 ? settings.focusDuration : 25;
+  state.focusDuration = Math.max(1, Math.min(180, _restoredDur));
   state.selectedTag = TAGS.indexOf(settings.defaultTag) !== -1 ? settings.defaultTag : 'Code';
   updateDurationUI();
   updateTagUI();
@@ -2444,6 +2446,9 @@ body.cooldown-anim {
     btn.addEventListener('click', function() {
       if (state.isRunning) return;
       var dur = parseInt(btn.dataset.duration, 10);
+      // v19: Timer overflow guard — clamp to 1-180 minutes
+      if (isNaN(dur) || dur < 1) dur = 1;
+      if (dur > 180) dur = 180;
       state.focusDuration = dur;
       updateDurationUI();
       updateTimerDisplay(dur * 60);

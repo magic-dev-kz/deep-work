@@ -1,5 +1,10 @@
 # Changelog
 
+## v19.0 (2026-03-29) — Error Handling Hardening
+
+- **Timer overflow guard**: Clamp focus duration to 1-180 minutes to prevent invalid timer states
+- SW cache bumped to `deepwork-v19`
+
 ## v18.0 (2026-03-29) — SEO / Meta Pass
 
 - **theme-color**: Added `<meta name="theme-color" content="#58a6ff">`
