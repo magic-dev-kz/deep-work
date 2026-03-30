@@ -1,5 +1,12 @@
 # Changelog
 
+
+## v23.0 (2026-03-29) — Deferred Font Loading
+
+- **Non-blocking Google Fonts**: Font CSS changed from render-blocking `<link rel="stylesheet">` to `<link rel="preload" ... onload>` with `<noscript>` fallback — improves First Contentful Paint
+- SW cache bumped to `deepwork-v23`
+
+---
 ## v20.0 (2026-03-29) — Print Styles
 
 - **Print stylesheet**: `@media print` rules — hides timer, buttons, onboarding, sounds; shows session stats + heatmap + session history (expanded); white bg, black text; heatmap colors preserved
