@@ -1115,6 +1115,34 @@ body.cooldown-anim {
   animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* === v22: Toast notification === */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-stack);
+  z-index: 9999;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Export button glow on hover */
 .export-btn:hover {
   box-shadow: 0 0 14px var(--glow-accent), 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -1928,6 +1956,171 @@ body.cooldown-anim {
   .onboarding-overlay { transition: none; }
 }
 
+/* === v21: Time Tracking Dashboard === */
+.time-tracking-dashboard {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--shadow-md);
+}
+
+.ttd-total {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.ttd-total-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.ttd-total-value {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--green-4) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.ttd-breakdown {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.ttd-breakdown-item {
+  text-align: center;
+}
+
+.ttd-breakdown-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ttd-breakdown-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.ttd-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+.ttd-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ttd-score-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ttd-score-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, rgba(57, 211, 83, 0.15) 0%, rgba(88, 166, 255, 0.15) 100%);
+  border: 1px solid rgba(57, 211, 83, 0.25);
+}
+
+.ttd-score-badge.score-high {
+  background: linear-gradient(135deg, rgba(57, 211, 83, 0.2) 0%, rgba(88, 166, 255, 0.2) 100%);
+  border-color: rgba(57, 211, 83, 0.4);
+}
+
+.ttd-score-badge.score-mid {
+  background: linear-gradient(135deg, rgba(210, 153, 34, 0.15) 0%, rgba(88, 166, 255, 0.15) 100%);
+  border-color: rgba(210, 153, 34, 0.3);
+}
+
+.ttd-score-badge.score-low {
+  background: rgba(248, 81, 73, 0.1);
+  border-color: rgba(248, 81, 73, 0.25);
+}
+
+.ttd-score-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ttd-score-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ttd-score-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  margin-top: 1px;
+}
+
+.ttd-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.ttd-trend.trend-up {
+  color: var(--green-4);
+  background: rgba(57, 211, 83, 0.1);
+}
+
+.ttd-trend.trend-down {
+  color: var(--danger);
+  background: rgba(248, 81, 73, 0.1);
+}
+
+.ttd-trend.trend-neutral {
+  color: var(--text-secondary);
+  background: rgba(139, 148, 158, 0.1);
+}
+
+.ttd-trend-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .ttd-total-value { font-size: 28px; }
+  .ttd-breakdown { gap: 16px; }
+  .ttd-breakdown-value { font-size: 15px; }
+  .ttd-score-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
 /* === v12: Session Rating Stars === */
 .session-rating { margin-bottom: 14px; text-align: center; }
 .session-rating-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
@@ -1959,7 +2152,7 @@ body.cooldown-anim {
   .onboarding-overlay,.skip-link,.pwa-banner,.oc-footer,.toast,
   .app-header,.timer-section,.duration-selector,.tag-selector,
   .focus-sounds,.distraction-btn,.session-templates,.daily-goal,
-  .storage-warning,.break-countdown,
+  .storage-warning,.break-countdown,.time-tracking-dashboard,
   button{display:none!important}
   body{background:#fff!important;color:#000!important;font-size:12pt}
   .app{max-width:100%;padding:0;margin:0;background:#fff!important}
@@ -2008,6 +2201,38 @@ body.cooldown-anim {
       <span class="header-streak-best" id="headerStreakBest">0 days best</span>
     </div>
   </header>
+
+  <!-- v21: Time Tracking Dashboard -->
+  <div class="time-tracking-dashboard" id="timeTrackingDashboard" aria-label="Time tracking dashboard">
+    <div class="ttd-total">
+      <div class="ttd-total-label">Total Focus Time</div>
+      <div class="ttd-total-value" id="ttdTotalValue">0h 0m</div>
+    </div>
+    <div class="ttd-breakdown">
+      <div class="ttd-breakdown-item">
+        <div class="ttd-breakdown-value" id="ttdWeekValue">0h 0m</div>
+        <div class="ttd-breakdown-label">This Week</div>
+      </div>
+      <div class="ttd-breakdown-item">
+        <div class="ttd-breakdown-value" id="ttdTodayValue">0h 0m</div>
+        <div class="ttd-breakdown-label">Today</div>
+      </div>
+    </div>
+    <div class="ttd-divider"></div>
+    <div class="ttd-score-row">
+      <div class="ttd-score-left">
+        <div class="ttd-score-badge" id="ttdScoreBadge">0</div>
+        <div class="ttd-score-info">
+          <div class="ttd-score-label">Productivity Score</div>
+          <div class="ttd-score-desc" id="ttdScoreDesc">Complete sessions to build your score</div>
+        </div>
+      </div>
+      <div class="ttd-trend trend-neutral" id="ttdTrend">
+        <span class="ttd-trend-arrow" id="ttdTrendArrow">&mdash;</span>
+        <span id="ttdTrendText">No data</span>
+      </div>
+    </div>
+  </div>
 
   <div class="storage-warning" id="storageWarning" role="alert">
     Storage full. Sessions won't be saved, but the timer still works.
@@ -2166,6 +2391,16 @@ body.cooldown-anim {
       <button class="export-btn" id="btnShareX" aria-label="Share on X" style="margin-top:8px">
         Share on X
       </button>
+      <!-- v22: Backup buttons -->
+      <button class="export-btn" id="btnExportBackup" aria-label="Export backup as JSON" style="margin-top:8px">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Export Backup
+      </button>
+      <button class="export-btn" id="btnImportBackup" aria-label="Import backup from JSON" style="margin-top:8px">
+        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+        Import Backup
+      </button>
+      <input type="file" id="backupFileInput" accept=".json" style="display:none">
       <div class="session-history">
         <button class="session-history-toggle" id="historyToggle" aria-expanded="false" aria-controls="historyList">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -3221,6 +3456,104 @@ body.cooldown-anim {
     URL.revokeObjectURL(url);
   });
 
+  // ---- v22: Toast helper ----
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('visible');
+    clearTimeout(t._tid);
+    t._tid = setTimeout(function() { t.classList.remove('visible'); }, 3000);
+  }
+
+  // ---- v22: Export JSON Backup ----
+  $('btnExportBackup').addEventListener('click', function() {
+    var sessions = loadValidSessions();
+    var settings = loadSettings();
+    var backup = {
+      app: 'Deep Work',
+      version: '22.0',
+      exported: new Date().toISOString(),
+      sessions: sessions,
+      settings: settings
+    };
+    var json = JSON.stringify(backup, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'deepwork_backup_' + dateKey(new Date()) + '.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Backup exported successfully');
+  });
+
+  // ---- v22: Import JSON Backup ----
+  var backupFileInput = $('backupFileInput');
+  $('btnImportBackup').addEventListener('click', function() {
+    backupFileInput.value = '';
+    backupFileInput.click();
+  });
+
+  backupFileInput.addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+      } catch (err) {
+        showToast('Invalid JSON file');
+        return;
+      }
+      // Validate backup structure
+      if (!data || data.app !== 'Deep Work' || !Array.isArray(data.sessions)) {
+        showToast('Invalid backup file: not a Deep Work backup');
+        return;
+      }
+      // Validate and filter incoming sessions
+      var incoming = [];
+      for (var i = 0; i < data.sessions.length; i++) {
+        var s = validateSession(data.sessions[i]);
+        if (s) incoming.push(s);
+      }
+      if (incoming.length === 0) {
+        showToast('No valid sessions found in backup');
+        return;
+      }
+      // Confirmation
+      if (!confirm('Import ' + incoming.length + ' session' + (incoming.length !== 1 ? 's' : '') + '? This will add to your existing data.')) {
+        return;
+      }
+      // Merge: add only sessions not already present (by ts)
+      var existing = loadValidSessions();
+      var existingTs = {};
+      for (var j = 0; j < existing.length; j++) {
+        existingTs[existing[j].ts] = true;
+      }
+      var added = 0;
+      for (var k = 0; k < incoming.length; k++) {
+        if (!existingTs[incoming[k].ts]) {
+          existing.push(incoming[k]);
+          added++;
+        }
+      }
+      if (added > 0) {
+        existing.sort(function(a, b) { return a.ts - b.ts; });
+        saveSessions(existing);
+        renderHeatmap();
+        updateStats();
+        updateDailyGoal();
+        updateProductivityInsight();
+        updateTimeTrackingDashboard();
+      }
+      showToast('Imported ' + added + ' session' + (added !== 1 ? 's' : '') + ' successfully');
+    };
+    reader.readAsText(file);
+  });
+
   // ---- Share on X (v9) ----
   $('btnShareX').addEventListener('click', function() {
     var sessions = loadValidSessions();
@@ -4124,13 +4457,164 @@ body.cooldown-anim {
     origUpdateStats();
     updateStreakPersistence();
     renderFocusStreakChart(); // v13
+    updateTimeTrackingDashboard(); // v21
   };
+
+  // ---- v21: Time Tracking Dashboard ----
+  var ttdTotalValue = $('ttdTotalValue');
+  var ttdWeekValue = $('ttdWeekValue');
+  var ttdTodayValue = $('ttdTodayValue');
+  var ttdScoreBadge = $('ttdScoreBadge');
+  var ttdScoreDesc = $('ttdScoreDesc');
+  var ttdTrend = $('ttdTrend');
+  var ttdTrendArrow = $('ttdTrendArrow');
+  var ttdTrendText = $('ttdTrendText');
+
+  function formatHoursMinutes(totalMin) {
+    var h = Math.floor(totalMin / 60);
+    var m = totalMin % 60;
+    return h + 'h ' + m + 'm';
+  }
+
+  function updateTimeTrackingDashboard() {
+    var sessions = loadValidSessions();
+    var now = new Date();
+    var todayKey = dateKey(now);
+
+    // Week boundaries (Mon-Sun)
+    var weekStart = new Date(now);
+    var dow = weekStart.getDay();
+    var diff = dow === 0 ? 6 : dow - 1;
+    weekStart.setDate(weekStart.getDate() - diff);
+    weekStart.setHours(0, 0, 0, 0);
+    var weekStartTs = weekStart.getTime();
+
+    // Last week boundaries
+    var lastWeekStart = new Date(weekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    var lastWeekStartTs = lastWeekStart.getTime();
+
+    var allTimeMin = 0;
+    var weekMin = 0;
+    var todayMin = 0;
+    var lastWeekMin = 0;
+
+    // This week: sessions per day and daily goal tracking
+    var weekDaysWithSessions = {};
+    var lastWeekDaysWithSessions = {};
+
+    // Daily goal: count sessions completed today
+    var todaySessionCount = 0;
+
+    sessions.forEach(function(s) {
+      allTimeMin += s.duration;
+      var sKey = dateKey(new Date(s.ts));
+
+      if (sKey === todayKey) {
+        todayMin += s.duration;
+        todaySessionCount++;
+      }
+
+      if (s.ts >= weekStartTs) {
+        weekMin += s.duration;
+        weekDaysWithSessions[sKey] = (weekDaysWithSessions[sKey] || 0) + s.duration;
+      }
+
+      if (s.ts >= lastWeekStartTs && s.ts < weekStartTs) {
+        lastWeekMin += s.duration;
+        var lwKey = dateKey(new Date(s.ts));
+        lastWeekDaysWithSessions[lwKey] = (lastWeekDaysWithSessions[lwKey] || 0) + s.duration;
+      }
+    });
+
+    // Update total displays
+    ttdTotalValue.textContent = formatHoursMinutes(allTimeMin);
+    ttdWeekValue.textContent = formatHoursMinutes(weekMin);
+    ttdTodayValue.textContent = formatHoursMinutes(todayMin);
+
+    // ---- Productivity Score (0-100) ----
+    // Based on: sessions completed / daily goal x consistency bonus
+    // Components:
+    //   1. Completion rate (0-60): (sessions this week / (DAILY_GOAL_SESSIONS * active days)) capped at 100%
+    //   2. Consistency bonus (0-40): active days this week / 7
+
+    var activeDays = Object.keys(weekDaysWithSessions).length;
+    // How many days have passed this week (including today)?
+    var dayOfWeek = now.getDay();
+    var daysElapsed = dayOfWeek === 0 ? 7 : dayOfWeek; // Mon=1..Sun=7
+
+    // Completion: average daily sessions vs daily goal target
+    var expectedSessions = daysElapsed * DAILY_GOAL_SESSIONS;
+    var weekSessionCount = 0;
+    sessions.forEach(function(s) {
+      if (s.ts >= weekStartTs) weekSessionCount++;
+    });
+    var completionRate = expectedSessions > 0 ? Math.min(1, weekSessionCount / expectedSessions) : 0;
+    var completionScore = Math.round(completionRate * 60);
+
+    // Consistency: how many of the elapsed days had at least one session
+    var consistencyRate = daysElapsed > 0 ? Math.min(1, activeDays / daysElapsed) : 0;
+    var consistencyScore = Math.round(consistencyRate * 40);
+
+    var productivityScore = Math.min(100, completionScore + consistencyScore);
+
+    // Update badge
+    ttdScoreBadge.textContent = productivityScore;
+    ttdScoreBadge.classList.remove('score-high', 'score-mid', 'score-low');
+    if (productivityScore >= 70) {
+      ttdScoreBadge.classList.add('score-high');
+    } else if (productivityScore >= 40) {
+      ttdScoreBadge.classList.add('score-mid');
+    } else {
+      ttdScoreBadge.classList.add('score-low');
+    }
+
+    // Description
+    if (weekSessionCount === 0) {
+      ttdScoreDesc.textContent = 'Complete sessions to build your score';
+    } else {
+      ttdScoreDesc.textContent = weekSessionCount + ' session' + (weekSessionCount !== 1 ? 's' : '') +
+        ' across ' + activeDays + ' day' + (activeDays !== 1 ? 's' : '') + ' this week';
+    }
+
+    // ---- Trend vs last week ----
+    // Compare last week's score to this week's score
+    var lastWeekActiveDays = Object.keys(lastWeekDaysWithSessions).length;
+    var lastWeekSessionCount = 0;
+    sessions.forEach(function(s) {
+      if (s.ts >= lastWeekStartTs && s.ts < weekStartTs) lastWeekSessionCount++;
+    });
+
+    var lastCompRate = 7 * DAILY_GOAL_SESSIONS > 0 ? Math.min(1, lastWeekSessionCount / (7 * DAILY_GOAL_SESSIONS)) : 0;
+    var lastConsRate = lastWeekActiveDays / 7;
+    var lastWeekScore = Math.min(100, Math.round(lastCompRate * 60) + Math.round(lastConsRate * 40));
+
+    ttdTrend.classList.remove('trend-up', 'trend-down', 'trend-neutral');
+    if (lastWeekSessionCount === 0 && weekSessionCount === 0) {
+      ttdTrend.classList.add('trend-neutral');
+      ttdTrendArrow.innerHTML = '&mdash;';
+      ttdTrendText.textContent = 'No data';
+    } else if (productivityScore > lastWeekScore) {
+      ttdTrend.classList.add('trend-up');
+      ttdTrendArrow.innerHTML = '&#9650;';
+      ttdTrendText.textContent = '+' + (productivityScore - lastWeekScore) + ' vs last week';
+    } else if (productivityScore < lastWeekScore) {
+      ttdTrend.classList.add('trend-down');
+      ttdTrendArrow.innerHTML = '&#9660;';
+      ttdTrendText.textContent = (productivityScore - lastWeekScore) + ' vs last week';
+    } else {
+      ttdTrend.classList.add('trend-neutral');
+      ttdTrendArrow.innerHTML = '&mdash;';
+      ttdTrendText.textContent = 'Same as last week';
+    }
+  }
 
   // ---- Init ----
   renderHeatmap();
   updateStats();
   updateDailyGoal();
   updateProductivityInsight(); // v12
+  updateTimeTrackingDashboard(); // v21
 
 })();
 
@@ -4193,5 +4677,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').cat
   <button class="pwa-install-dismiss" id="pwaInstallDismiss" aria-label="Dismiss">&times;</button>
 </div>
 <div class="oc-footer"><a href="https://magic-dev-kz.github.io/openclaw/" target="_blank" rel="noopener">More free tools → OpenClaw</a></div>
+<!-- v22: Toast notification -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
