@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.0 (2026-03-29) — Accessibility Pass
+
+- **Skip link**: "Skip to main content" link for keyboard users
+- **Timer display**: Added dynamic `aria-label` (e.g. "Timer: 12 minutes 30 seconds remaining") updated on every tick
+- **Tag chips**: Already had `role="radio"` + `aria-checked` in radiogroup (verified)
+- SW cache bumped to `deepwork-v17`
+
 ## v16.0 (2026-03-29) — Sound Volume Slider
 
 - **Volume Slider**: Ambient sound volume control (0-100%) with live adjustment

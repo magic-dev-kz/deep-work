@@ -1948,9 +1948,12 @@ body.cooldown-anim {
 
 /* === v12: Break Timer === */
 .break-countdown { font-size: 13px; color: var(--accent); margin-top: 6px; font-weight: 600; }
+.skip-link{position:absolute;top:-60px;left:8px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:8px;z-index:10000;font-weight:600;text-decoration:none;transition:top .15s}
+.skip-link:focus{top:8px}
 </style>
 </head>
 <body>
+<a href="#timerDigits" class="skip-link">Skip to main content</a>
 
 <!-- Onboarding overlay (first visit) -->
 <div class="onboarding-overlay" id="onboarding-overlay">
@@ -2081,7 +2084,7 @@ body.cooldown-anim {
         <circle class="timer-ring-progress" id="timerRing" cx="128" cy="128" r="108" />
       </svg>
       <div class="timer-display">
-        <div class="timer-digits" id="timerDigits" aria-live="polite" aria-atomic="true">25:00</div>
+        <div class="timer-digits" id="timerDigits" aria-live="polite" aria-atomic="true" aria-label="Timer: 25 minutes 0 seconds remaining">25:00</div>
         <div class="timer-label" id="timerLabel">Focus</div>
       </div>
       <!-- BUG-25a: Confetti container -->
@@ -2522,6 +2525,7 @@ body.cooldown-anim {
     var m = Math.floor(seconds / 60);
     var s = seconds % 60;
     timerDigits.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    timerDigits.setAttribute('aria-label', 'Timer: ' + m + ' minute' + (m !== 1 ? 's' : '') + ' ' + s + ' second' + (s !== 1 ? 's' : '') + ' remaining');
   }
 
   function updateRing(fraction) {
