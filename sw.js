@@ -1,4 +1,4 @@
-const CACHE = 'deepwork-v19';
+const CACHE = 'deepwork-v20';
 const ASSETS = ['./', './index.html'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

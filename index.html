@@ -1953,6 +1953,28 @@ body.cooldown-anim {
 .break-countdown { font-size: 13px; color: var(--accent); margin-top: 6px; font-weight: 600; }
 .skip-link{position:absolute;top:-60px;left:8px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:8px;z-index:10000;font-weight:600;text-decoration:none;transition:top .15s}
 .skip-link:focus{top:8px}
+
+/* === Print Styles === */
+@media print{
+  .onboarding-overlay,.skip-link,.pwa-banner,.oc-footer,.toast,
+  .app-header,.timer-section,.duration-selector,.tag-selector,
+  .focus-sounds,.distraction-btn,.session-templates,.daily-goal,
+  .storage-warning,.break-countdown,
+  button{display:none!important}
+  body{background:#fff!important;color:#000!important;font-size:12pt}
+  .app{max-width:100%;padding:0;margin:0;background:#fff!important}
+  .stats-panel{display:block!important;background:#fff!important;color:#000!important;box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .stats-panel h2{color:#333!important}
+  .stats-grid{color:#000!important}
+  .heatmap-section{display:block!important;break-inside:avoid;margin-top:12px}
+  .heatmap-section h2{color:#333!important}
+  .heatmap-cell{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .session-history{display:block!important}
+  .session-history-list{display:block!important;max-height:none!important;overflow:visible!important}
+  .session-history-item{break-inside:avoid;border:1px solid #ccc;background:#fff!important;color:#000!important;box-shadow:none}
+  .session-history-toggle{display:none!important}
+  @page{margin:1.5cm;size:auto}
+}
 </style>
 </head>
 <body>

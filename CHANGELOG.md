@@ -1,5 +1,10 @@
 # Changelog
 
+## v20.0 (2026-03-29) — Print Styles
+
+- **Print stylesheet**: `@media print` rules — hides timer, buttons, onboarding, sounds; shows session stats + heatmap + session history (expanded); white bg, black text; heatmap colors preserved
+- SW cache bumped to `deepwork-v20`
+
 ## v19.0 (2026-03-29) — Error Handling Hardening
 
 - **Timer overflow guard**: Clamp focus duration to 1-180 minutes to prevent invalid timer states
