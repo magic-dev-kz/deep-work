@@ -4615,11 +4615,17 @@ body.cooldown-anim {
   }
 
   // ---- Init ----
-  renderHeatmap();
   updateStats();
   updateDailyGoal();
-  updateProductivityInsight(); // v12
-  updateTimeTrackingDashboard(); // v21
+
+  // v26: Defer non-critical features to not block first paint
+  var _deferInit = function(fn) {
+    if ('requestIdleCallback' in window) { requestIdleCallback(fn); }
+    else { setTimeout(fn, 100); }
+  };
+  _deferInit(function() { renderHeatmap(); });
+  _deferInit(function() { updateProductivityInsight(); }); // v12
+  _deferInit(function() { updateTimeTrackingDashboard(); }); // v21
 
 })();
 
@@ -4673,7 +4679,9 @@ body.cooldown-anim {
   });
 })();
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}
+// v26: Defer SW registration to not block first paint
+if('requestIdleCallback' in window){requestIdleCallback(function(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}});}
+else{setTimeout(function(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}},100);}
 </script>
 <!-- v7: PWA install banner -->
 <div class="pwa-install-banner" id="pwaInstallBanner">
